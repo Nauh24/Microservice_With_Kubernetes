@@ -1,0 +1,11 @@
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\client\IJobCategoryClient.java
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\controller\JobCategoryController.java
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\service\IJobCategoryService.java
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\externalModel\JobCategoryDto.java
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\repository\JobCategoryRepository.java
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\exception\AppException.java
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\service\JobCategoryServiceImpl.java
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\exception\ErrorCode.java
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\exception\GlobalExceptionHandler.java
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\JobServiceApplication.java
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\model\JobCategory.java

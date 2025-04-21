@@ -1,0 +1,13 @@
+com\aad\microservice\job_service\model\JobCategory.class
+com\aad\microservice\job_service\service\IJobCategoryService.class
+com\aad\microservice\job_service\externalModel\JobCategoryDto$JobCategoryDtoBuilder.class
+com\aad\microservice\job_service\client\IJobCategoryClient.class
+com\aad\microservice\job_service\JobServiceApplication.class
+com\aad\microservice\job_service\repository\JobCategoryRepository.class
+com\aad\microservice\job_service\exception\ErrorCode.class
+com\aad\microservice\job_service\model\JobCategory$JobCategoryBuilder.class
+com\aad\microservice\job_service\exception\AppException.class
+com\aad\microservice\job_service\service\JobCategoryServiceImpl.class
+com\aad\microservice\job_service\controller\JobCategoryController.class
+com\aad\microservice\job_service\externalModel\JobCategoryDto.class
+com\aad\microservice\job_service\exception\GlobalExceptionHandler.class
