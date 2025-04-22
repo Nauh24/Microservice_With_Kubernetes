@@ -27,7 +27,11 @@ spring:
         - id: job-service
           uri: http://localhost:8086
           predicates:
-            - Path=/api/job-category/**
+            - Path=/api/job/**,/api/job-category/**
+        - id: customer-contract-service
+          uri: http://localhost:8087
+          predicates:
+            - Path=/api/customer-contract/**
       globalcors:
         corsConfigurations:
           '[/**]':
