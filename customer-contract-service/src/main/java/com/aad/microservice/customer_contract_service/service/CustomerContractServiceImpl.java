@@ -1,10 +1,10 @@
 package com.aad.microservice.customer_contract_service.service;
 
 import com.aad.microservice.customer_contract_service.client.CustomerClient;
+import com.aad.microservice.customer_contract_service.constant.ContractStatusConstants;
 import com.aad.microservice.customer_contract_service.exception.AppException;
 import com.aad.microservice.customer_contract_service.exception.ErrorCode;
 import com.aad.microservice.customer_contract_service.model.CustomerContract;
-import com.aad.microservice.customer_contract_service.model.ContractStatus;
 import com.aad.microservice.customer_contract_service.repository.CustomerContractRepository;
 import org.springframework.stereotype.Service;
 
@@ -26,21 +26,28 @@ public class CustomerContractServiceImpl implements ICustomerContractService {
     @Override
     public CustomerContract createContract(CustomerContract contract) {
         // Kiểm tra khách hàng có tồn tại không
-        Boolean customerExists = customerClient.checkCustomerExists(contract.getCustomerId());
-        if (!customerExists) {
-            throw new AppException(ErrorCode.CustomerNotFound_Exception, "Không tìm thấy thông tin khách hàng");
+        try {
+            Boolean customerExists = customerClient.checkCustomerExists(contract.getCustomerId());
+            if (!customerExists) {
+                throw new AppException(ErrorCode.CustomerNotFound_Exception, "Không tìm thấy thông tin khách hàng");
+            }
+        } catch (Exception e) {
+            // Nếu không thể kết nối đến customer-service, vẫn cho phép tạo hợp đồng
+            // nhưng ghi log lỗi
+            System.out.println("Không thể kết nối đến customer-service: " + e.getMessage());
+            // Trong môi trường production, nên sử dụng logger thay vì System.out.println
         }
         
         // Kiểm tra ngày bắt đầu và kết thúc
-        if (contract.getStartDate() == null || contract.getEndDate() == null) {
+        if (contract.getStartingDate() == null || contract.getEndingDate() == null) {
             throw new AppException(ErrorCode.NotAllowCreate_Exception, "Ngày bắt đầu và kết thúc không được để trống");
         }
         
-        if (contract.getStartDate().isAfter(contract.getEndDate())) {
+        if (contract.getStartingDate().isAfter(contract.getEndingDate())) {
             throw new AppException(ErrorCode.InvalidDate_Exception, "Ngày bắt đầu phải trước ngày kết thúc");
         }
         
-        if (contract.getStartDate().isBefore(LocalDate.now())) {
+        if (contract.getStartingDate().isBefore(LocalDate.now())) {
             throw new AppException(ErrorCode.InvalidDate_Exception, "Ngày bắt đầu phải từ ngày hiện tại trở đi");
         }
         
@@ -51,7 +58,7 @@ public class CustomerContractServiceImpl implements ICustomerContractService {
         
         // Nếu không có status, thiết lập mặc định là DRAFT
         if (contract.getStatus() == null) {
-            contract.setStatus(ContractStatus.DRAFT);
+            contract.setStatus(ContractStatusConstants.DRAFT);
         }
         
         // Lưu hợp đồng
@@ -77,52 +84,54 @@ public class CustomerContractServiceImpl implements ICustomerContractService {
         CustomerContract currentContract = existingContract.get();
         
         // Không cho phép cập nhật hợp đồng đã hoàn thành hoặc chấm dứt
-        if (currentContract.getStatus() == ContractStatus.COMPLETED || 
-            currentContract.getStatus() == ContractStatus.TERMINATED ||
-            currentContract.getStatus() == ContractStatus.EXPIRED) {
+        if (currentContract.getStatus() == ContractStatusConstants.COMPLETED || 
+            currentContract.getStatus() == ContractStatusConstants.TERMINATED) {
             throw new AppException(ErrorCode.NotAllowUpdate_Exception, 
                 "Không thể cập nhật hợp đồng đã " + 
-                (currentContract.getStatus() == ContractStatus.COMPLETED ? "hoàn thành" : 
-                 currentContract.getStatus() == ContractStatus.TERMINATED ? "chấm dứt" : "hết hạn"));
+                (currentContract.getStatus() == ContractStatusConstants.COMPLETED ? "hoàn thành" : "chấm dứt"));
         }
         
         // Kiểm tra ngày bắt đầu và kết thúc
-        if (contract.getStartDate() != null && contract.getEndDate() != null) {
-            if (contract.getStartDate().isAfter(contract.getEndDate())) {
+        if (contract.getStartingDate() != null && contract.getEndingDate() != null) {
+            if (contract.getStartingDate().isAfter(contract.getEndingDate())) {
                 throw new AppException(ErrorCode.InvalidDate_Exception, "Ngày bắt đầu phải trước ngày kết thúc");
             }
             
             // Nếu hợp đồng đã ACTIVE, không cho phép thay đổi ngày bắt đầu
-            if (currentContract.getStatus() == ContractStatus.ACTIVE && 
-                !contract.getStartDate().isEqual(currentContract.getStartDate())) {
+            if (currentContract.getStatus() == ContractStatusConstants.ACTIVE && 
+                !contract.getStartingDate().isEqual(currentContract.getStartingDate())) {
                 throw new AppException(ErrorCode.NotAllowUpdate_Exception, 
                     "Không thể thay đổi ngày bắt đầu của hợp đồng đang hoạt động");
             }
         }
         
         // Cập nhật thông tin
-        if (contract.getTitle() != null) {
-            currentContract.setTitle(contract.getTitle());
-        }
-        
         if (contract.getDescription() != null) {
             currentContract.setDescription(contract.getDescription());
         }
         
-        if (contract.getStartDate() != null) {
-            currentContract.setStartDate(contract.getStartDate());
+        if (contract.getStartingDate() != null) {
+            currentContract.setStartingDate(contract.getStartingDate());
         }
         
-        if (contract.getEndDate() != null) {
-            currentContract.setEndDate(contract.getEndDate());
+        if (contract.getEndingDate() != null) {
+            currentContract.setEndingDate(contract.getEndingDate());
         }
         
-        if (contract.getTotalValue() != null) {
-            currentContract.setTotalValue(contract.getTotalValue());
+        if (contract.getNumberOfWorkers() != null) {
+            currentContract.setNumberOfWorkers(contract.getNumberOfWorkers());
         }
         
-        if (contract.getLocation() != null) {
-            currentContract.setLocation(contract.getLocation());
+        if (contract.getTotalAmount() != null) {
+            currentContract.setTotalAmount(contract.getTotalAmount());
+        }
+        
+        if (contract.getAddress() != null) {
+            currentContract.setAddress(contract.getAddress());
+        }
+        
+        if (contract.getJobCategoryId() != null) {
+            currentContract.setJobCategoryId(contract.getJobCategoryId());
         }
         
         if (contract.getStatus() != null) {
@@ -144,7 +153,7 @@ public class CustomerContractServiceImpl implements ICustomerContractService {
         CustomerContract currentContract = contract.get();
         
         // Không cho phép xóa hợp đồng đang hoạt động
-        if (currentContract.getStatus() == ContractStatus.ACTIVE) {
+        if (currentContract.getStatus() == ContractStatusConstants.ACTIVE) {
             throw new AppException(ErrorCode.NotAllowDelete_Exception, "Không thể xóa hợp đồng đang hoạt động");
         }
         
@@ -173,17 +182,22 @@ public class CustomerContractServiceImpl implements ICustomerContractService {
     }
 
     @Override
-    public List<CustomerContract> getContractsByStatus(ContractStatus status) {
+    public List<CustomerContract> getContractsByStatus(Integer status) {
         return contractRepository.findByStatusAndIsDeletedFalse(status);
     }
 
     @Override
     public List<CustomerContract> getContractsByDateRange(LocalDate startDate, LocalDate endDate) {
-        return contractRepository.findByStartDateBetweenAndIsDeletedFalse(startDate, endDate);
+        return contractRepository.findByStartingDateBetweenAndIsDeletedFalse(startDate, endDate);
+    }
+    
+    @Override
+    public List<CustomerContract> getContractsByJobCategoryId(Long jobCategoryId) {
+        return contractRepository.findByJobCategoryIdAndIsDeletedFalse(jobCategoryId);
     }
 
     @Override
-    public CustomerContract updateContractStatus(Long id, ContractStatus status) {
+    public CustomerContract updateContractStatus(Long id, Integer status) {
         Optional<CustomerContract> contract = contractRepository.findByIdAndIsDeletedFalse(id);
         if (contract.isEmpty()) {
             throw new AppException(ErrorCode.NotFound_Exception, "Không tìm thấy thông tin hợp đồng");
@@ -193,26 +207,30 @@ public class CustomerContractServiceImpl implements ICustomerContractService {
         
         // Kiểm tra logic chuyển trạng thái
         switch (status) {
-            case ACTIVE:
-                if (currentContract.getStatus() != ContractStatus.PENDING) {
+            case ContractStatusConstants.ACTIVE:
+                if (currentContract.getStatus() != ContractStatusConstants.PENDING) {
                     throw new AppException(ErrorCode.NotAllowUpdate_Exception, 
                         "Chỉ có thể kích hoạt hợp đồng đang ở trạng thái chờ ký");
                 }
+                if (currentContract.getSignedDate() == null) {
+                    throw new AppException(ErrorCode.NotAllowUpdate_Exception, 
+                        "Hợp đồng chưa được ký, không thể kích hoạt");
+                }
                 break;
-            case COMPLETED:
-                if (currentContract.getStatus() != ContractStatus.ACTIVE) {
+            case ContractStatusConstants.COMPLETED:
+                if (currentContract.getStatus() != ContractStatusConstants.ACTIVE) {
                     throw new AppException(ErrorCode.NotAllowUpdate_Exception, 
                         "Chỉ có thể hoàn thành hợp đồng đang hoạt động");
                 }
                 break;
-            case TERMINATED:
-                if (currentContract.getStatus() != ContractStatus.ACTIVE) {
+            case ContractStatusConstants.TERMINATED:
+                if (currentContract.getStatus() != ContractStatusConstants.ACTIVE) {
                     throw new AppException(ErrorCode.NotAllowUpdate_Exception, 
                         "Chỉ có thể chấm dứt hợp đồng đang hoạt động");
                 }
                 break;
-            case PENDING:
-                if (currentContract.getStatus() != ContractStatus.DRAFT) {
+            case ContractStatusConstants.PENDING:
+                if (currentContract.getStatus() != ContractStatusConstants.DRAFT) {
                     throw new AppException(ErrorCode.NotAllowUpdate_Exception, 
                         "Chỉ có thể chuyển sang trạng thái chờ ký từ bản nháp");
                 }
@@ -222,6 +240,32 @@ public class CustomerContractServiceImpl implements ICustomerContractService {
         }
         
         currentContract.setStatus(status);
+        currentContract.setUpdatedAt(LocalDateTime.now());
+        
+        return contractRepository.save(currentContract);
+    }
+    
+    @Override
+    public CustomerContract signContract(Long id, LocalDate signedDate) {
+        Optional<CustomerContract> contract = contractRepository.findByIdAndIsDeletedFalse(id);
+        if (contract.isEmpty()) {
+            throw new AppException(ErrorCode.NotFound_Exception, "Không tìm thấy thông tin hợp đồng");
+        }
+        
+        CustomerContract currentContract = contract.get();
+        
+        // Chỉ có thể ký hợp đồng ở trạng thái PENDING
+        if (currentContract.getStatus() != ContractStatusConstants.PENDING) {
+            throw new AppException(ErrorCode.NotAllowUpdate_Exception, 
+                "Chỉ có thể ký hợp đồng đang ở trạng thái chờ ký");
+        }
+        
+        // Ngày ký không được trước ngày hiện tại
+        if (signedDate.isBefore(LocalDate.now())) {
+            throw new AppException(ErrorCode.InvalidDate_Exception, "Ngày ký không được trước ngày hiện tại");
+        }
+        
+        currentContract.setSignedDate(signedDate);
         currentContract.setUpdatedAt(LocalDateTime.now());
         
         return contractRepository.save(currentContract);

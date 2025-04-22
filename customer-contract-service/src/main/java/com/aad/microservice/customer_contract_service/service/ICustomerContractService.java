@@ -1,7 +1,6 @@
 package com.aad.microservice.customer_contract_service.service;
 
 import com.aad.microservice.customer_contract_service.model.CustomerContract;
-import com.aad.microservice.customer_contract_service.model.ContractStatus;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -12,12 +11,14 @@ public interface ICustomerContractService {
     void deleteContract(Long id);
     CustomerContract getContractById(Long id);
     List<CustomerContract> getAllContracts();
-    
+
     List<CustomerContract> getContractsByCustomerId(Long customerId);
-    List<CustomerContract> getContractsByStatus(ContractStatus status);
+    List<CustomerContract> getContractsByStatus(Integer status);
     List<CustomerContract> getContractsByDateRange(LocalDate startDate, LocalDate endDate);
-    
-    CustomerContract updateContractStatus(Long id, ContractStatus status);
-    
+    List<CustomerContract> getContractsByJobCategoryId(Long jobCategoryId);
+
+    CustomerContract updateContractStatus(Long id, Integer status);
+    CustomerContract signContract(Long id, LocalDate signedDate);
+
     boolean checkContractExists(Long id);
 }

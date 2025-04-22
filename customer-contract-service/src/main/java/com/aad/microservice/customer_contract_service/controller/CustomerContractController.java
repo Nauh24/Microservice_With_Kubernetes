@@ -1,7 +1,7 @@
 package com.aad.microservice.customer_contract_service.controller;
 
+import com.aad.microservice.customer_contract_service.constant.ContractStatusConstants;
 import com.aad.microservice.customer_contract_service.model.CustomerContract;
-import com.aad.microservice.customer_contract_service.model.ContractStatus;
 import com.aad.microservice.customer_contract_service.service.ICustomerContractService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -52,8 +52,13 @@ public class CustomerContractController {
     }
 
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<CustomerContract>> getContractsByStatus(@PathVariable ContractStatus status) {
+    public ResponseEntity<List<CustomerContract>> getContractsByStatus(@PathVariable Integer status) {
         return ResponseEntity.ok(contractService.getContractsByStatus(status));
+    }
+
+    @GetMapping("/job-category/{jobCategoryId}")
+    public ResponseEntity<List<CustomerContract>> getContractsByJobCategoryId(@PathVariable Long jobCategoryId) {
+        return ResponseEntity.ok(contractService.getContractsByJobCategoryId(jobCategoryId));
     }
 
     @GetMapping("/date-range")
@@ -66,8 +71,15 @@ public class CustomerContractController {
     @PutMapping("/{id}/status")
     public ResponseEntity<CustomerContract> updateContractStatus(
             @PathVariable Long id,
-            @RequestParam ContractStatus status) {
+            @RequestParam Integer status) {
         return ResponseEntity.ok(contractService.updateContractStatus(id, status));
+    }
+
+    @PutMapping("/{id}/sign")
+    public ResponseEntity<CustomerContract> signContract(
+            @PathVariable Long id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate signedDate) {
+        return ResponseEntity.ok(contractService.signContract(id, signedDate));
     }
 
     @GetMapping("/{id}/check-contract-exists")
