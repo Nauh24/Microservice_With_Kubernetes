@@ -36,7 +36,7 @@ public class CustomerContract {
     private Long customerId;         // ID khách hàng
 
     // Trạng thái và thông tin hệ thống
-    private Integer status;          // Trạng thái hợp đồng (0: Nháp, 1: Chờ ký, 2: Đang hoạt động, 3: Hoàn thành, 4: Hủy)
+    private Integer status;          // Trạng thái hợp đồng (0: Chờ xử lý, 1: Đang hoạt động, 2: Hoàn thành, 3: Đã hủy)
     private Boolean isDeleted;       // Đánh dấu đã xóa
     private LocalDateTime createdAt; // Thời gian tạo
     private LocalDateTime updatedAt; // Thời gian cập nhật
