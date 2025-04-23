@@ -1,3 +1,4 @@
-FROM eclipse-temurin:24-jdk
-COPY target/*.jar app.jar
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+FROM eclipse-temurin:17-jdk 
+WORKDIR /app 
+COPY target/*.jar app.jar 
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=docker", "/app/app.jar"] 

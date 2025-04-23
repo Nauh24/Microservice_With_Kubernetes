@@ -6,8 +6,7 @@ import com.aad.microservice.worker_contract_service.exception.AppException;
 import com.aad.microservice.worker_contract_service.exception.ErrorCode;
 import com.aad.microservice.worker_contract_service.model.WorkerContract;
 import com.aad.microservice.worker_contract_service.repository.WorkerContractRepository;
-import org.hibernate.jdbc.Work;
-import org.springframework.http.ResponseEntity;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -32,8 +31,6 @@ public class WorkerContractServiceImpl implements IWorkerContractService {
         contract.setUpdatedAt(LocalDateTime.now());
         contract.setIsDeleted(false);
         // Cập nhật status của hợp đồng
-        LocalDate currentDate = LocalDate.now();
-
         contract.setStatus(GetContractStatusBasedOnCurrentDate(contract));
 
         WorkerContract saved = _workerContractRepository.save(contract);

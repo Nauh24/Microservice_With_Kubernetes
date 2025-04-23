@@ -2,7 +2,7 @@ package com.mircoservice.job_schedule_service.controller;
 
 import com.mircoservice.job_schedule_service.model.JobSchedule;
 import com.mircoservice.job_schedule_service.service.JobServiceImpl;
-import org.springframework.boot.autoconfigure.batch.BatchProperties;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,6 +1,6 @@
 package com.aad.microservice.customer_contract_service.controller;
 
-import com.aad.microservice.customer_contract_service.constant.ContractStatusConstants;
+
 import com.aad.microservice.customer_contract_service.model.CustomerContract;
 import com.aad.microservice.customer_contract_service.service.ICustomerContractService;
 import org.springframework.format.annotation.DateTimeFormat;

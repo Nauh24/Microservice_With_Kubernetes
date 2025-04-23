@@ -18,9 +18,12 @@ public class CustomerContract {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String contractCode;     // Mã hợp đồng
+
     // Thông tin thời gian
     private LocalDate startingDate;  // Ngày bắt đầu
     private LocalDate endingDate;    // Ngày kết thúc
+    private LocalDate signedDate;    // Ngày ký hợp đồng
 
     // Thông tin công việc
     private Integer numberOfWorkers;  // Số lượng nhân công cần

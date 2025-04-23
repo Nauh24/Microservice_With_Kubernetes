@@ -1,7 +1,7 @@
 package com.aad.microservice.worker_contract_service.client;
 
 import com.aad.microservice.worker_contract_service.externalModel.Worker;
-import feign.Request;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;

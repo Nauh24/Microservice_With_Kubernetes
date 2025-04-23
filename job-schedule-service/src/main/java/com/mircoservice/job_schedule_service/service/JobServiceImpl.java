@@ -16,6 +16,8 @@ import java.util.Optional;
 @Service
 public class JobServiceImpl implements IJobService{
     private final JobScheduleRepository _jobScheduleRepository;
+    // Biến này sẽ được sử dụng trong tương lai
+    @SuppressWarnings("unused")
     private final IRegisterClient _workScheduleClient;
     public JobServiceImpl(JobScheduleRepository jobScheduleRepository, IRegisterClient IRegisterClient){
         _jobScheduleRepository = jobScheduleRepository;
