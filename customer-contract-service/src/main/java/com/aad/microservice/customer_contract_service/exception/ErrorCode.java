@@ -12,6 +12,7 @@ public enum ErrorCode {
     Duplicated_Exception(1004),
     InvalidDate_Exception(1005),
     CustomerNotFound_Exception(1006),
+    JobCategoryNotFound_Exception(1007),
     ;
 
     ErrorCode(int code) {

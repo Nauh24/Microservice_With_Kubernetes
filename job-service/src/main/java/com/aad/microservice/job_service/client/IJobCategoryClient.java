@@ -1,6 +1,6 @@
 package com.aad.microservice.job_service.client;
 
-import com.aad.microservice.job_service.externalModel.JobCategoryDto;
+import com.aad.microservice.job_service.model.JobCategory;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,5 +12,5 @@ public interface IJobCategoryClient {
     Boolean checkJobCategoryExists(@PathVariable long id);
 
     @RequestMapping(method = RequestMethod.GET, value = "/{id}")
-    JobCategoryDto getJobCategoryById(@PathVariable long id);
+    JobCategory getJobCategoryById(@PathVariable long id);
 }

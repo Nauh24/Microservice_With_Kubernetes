@@ -1,6 +1,7 @@
 package com.aad.microservice.customer_contract_service.service;
 
 import com.aad.microservice.customer_contract_service.client.CustomerClient;
+import com.aad.microservice.customer_contract_service.client.JobCategoryClient;
 import com.aad.microservice.customer_contract_service.constant.ContractStatusConstants;
 import com.aad.microservice.customer_contract_service.exception.AppException;
 import com.aad.microservice.customer_contract_service.exception.ErrorCode;
@@ -17,10 +18,14 @@ import java.util.Optional;
 public class CustomerContractServiceImpl implements ICustomerContractService {
     private final CustomerContractRepository contractRepository;
     private final CustomerClient customerClient;
+    private final JobCategoryClient jobCategoryClient;
 
-    public CustomerContractServiceImpl(CustomerContractRepository contractRepository, CustomerClient customerClient) {
+    public CustomerContractServiceImpl(CustomerContractRepository contractRepository,
+                                      CustomerClient customerClient,
+                                      JobCategoryClient jobCategoryClient) {
         this.contractRepository = contractRepository;
         this.customerClient = customerClient;
+        this.jobCategoryClient = jobCategoryClient;
     }
 
     @Override
@@ -36,6 +41,21 @@ public class CustomerContractServiceImpl implements ICustomerContractService {
             // nhưng ghi log lỗi
             System.out.println("Không thể kết nối đến customer-service: " + e.getMessage());
             // Trong môi trường production, nên sử dụng logger thay vì System.out.println
+        }
+
+        // Kiểm tra loại công việc có tồn tại không
+        if (contract.getJobCategoryId() != null) {
+            try {
+                Boolean jobCategoryExists = jobCategoryClient.checkJobCategoryExists(contract.getJobCategoryId());
+                if (!jobCategoryExists) {
+                    throw new AppException(ErrorCode.JobCategoryNotFound_Exception, "Không tìm thấy thông tin loại công việc");
+                }
+            } catch (Exception e) {
+                // Nếu không thể kết nối đến job-service, vẫn cho phép tạo hợp đồng
+                // nhưng ghi log lỗi
+                System.out.println("Không thể kết nối đến job-service: " + e.getMessage());
+                // Trong môi trường production, nên sử dụng logger thay vì System.out.println
+            }
         }
 
         // Kiểm tra ngày bắt đầu và kết thúc
@@ -131,7 +151,18 @@ public class CustomerContractServiceImpl implements ICustomerContractService {
         }
 
         if (contract.getJobCategoryId() != null) {
-            currentContract.setJobCategoryId(contract.getJobCategoryId());
+            try {
+                Boolean jobCategoryExists = jobCategoryClient.checkJobCategoryExists(contract.getJobCategoryId());
+                if (!jobCategoryExists) {
+                    throw new AppException(ErrorCode.JobCategoryNotFound_Exception, "Không tìm thấy thông tin loại công việc");
+                }
+                currentContract.setJobCategoryId(contract.getJobCategoryId());
+            } catch (Exception e) {
+                // Nếu không thể kết nối đến job-service, vẫn cho phép cập nhật hợp đồng
+                // nhưng ghi log lỗi
+                System.out.println("Không thể kết nối đến job-service: " + e.getMessage());
+                currentContract.setJobCategoryId(contract.getJobCategoryId());
+            }
         }
 
         if (contract.getStatus() != null) {
