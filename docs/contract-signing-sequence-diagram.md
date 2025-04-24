@@ -1,288 +1,337 @@
 # Sơ đồ tuần tự cho module "Ký hợp đồng với khách thuê lao động"
 
-Sơ đồ tuần tự dưới đây mô tả chi tiết luồng hoạt động của module "Ký hợp đồng với khách thuê lao động" theo các bước:
+Sơ đồ tuần tự dưới đây mô tả chi tiết luồng hoạt động của module "Ký hợp đồng với khách thuê lao động" trong kiến trúc vi dịch vụ (microservices), tập trung vào backend và chỉ rõ các lớp thuộc về từng microservice.
 
-1. Nhân viên chọn chức năng "Ký hợp đồng với khách thuê lao động"
-2. Giao diện danh sách các hợp đồng đã ký hiện lên, mặc định sắp xếp theo thứ tự thời gian mới nhất đến cũ nhất
-3. Nhân viên click nút "Thêm hợp đồng" để tạo hợp đồng mới
-4. Giao diện tìm khách hàng hiện lên
-5. Nhân viên nhập tên khách hàng hoặc một phần tên khách hàng và click tìm
-6. Giao diện hiện lên danh sách các khách hàng có tên chứa từ khóa vừa nhập
-7. Nhân viên chọn đúng khách hàng
-8. Nhân viên chọn đầu việc có trong danh sách, nhập thông tin hợp đồng: thời gian thuê (từ ngày - đến ngày), số lượng nhân công cần thuê,...
-9. Nhân viên xác nhận lại toàn bộ thông tin với khách hàng và click lưu
-10. Hệ thống lưu lại hợp đồng, báo thành công và đưa hợp đồng vào danh sách hợp đồng đã ký
+## Các microservice tham gia
+
+1. **Frontend**: Giao diện người dùng
+2. **customer-service**: Quản lý thông tin khách hàng
+3. **job-service**: Quản lý thông tin loại công việc (đầu việc)
+4. **customer-contract-service**: Quản lý hợp đồng với khách hàng
+
+## Sơ đồ tuần tự
 
 ```mermaid
 sequenceDiagram
     actor Staff as Nhân viên
-    participant ContractList as CustomerContractList
-    participant SelectionDialog as CustomerSelectionDialog
-    participant ContractForm as ContractForm
-    participant ContractController as CustomerContractController
-    participant ContractService as CustomerContractServiceImpl
-    participant CustomerClient as CustomerClient
-    participant JobClient as JobCategoryClient
-    participant CustomerController as CustomerController
-    participant CustomerService as CustomerServiceImpl
-    participant JobController as JobCategoryController
-    participant JobService as JobCategoryServiceImpl
-    participant ContractRepo as CustomerContractRepository
-    participant CustomerRepo as CustomerRepository
-    participant JobRepo as JobCategoryRepository
-    
+
+    box Frontend
+        participant Frontend
+    end
+
+    box customer-contract-service
+        participant ContractController as CustomerContractController
+        participant ContractService as CustomerContractService
+        participant ContractServiceImpl as CustomerContractServiceImpl
+        participant ContractRepo as CustomerContractRepository
+        participant CustomerClient
+        participant JobClient as JobCategoryClient
+    end
+
+    box customer-service
+        participant CustomerController
+        participant CustomerService
+        participant CustomerServiceImpl
+        participant CustomerRepo as CustomerRepository
+    end
+
+    box job-service
+        participant JobController as JobCategoryController
+        participant JobService as JobCategoryService
+        participant JobServiceImpl as JobCategoryServiceImpl
+        participant JobRepo as JobCategoryRepository
+    end
+
     %% 1. Nhân viên chọn chức năng "Ký hợp đồng với khách thuê lao động"
-    Staff->>ContractList: Chọn chức năng "Ký hợp đồng với khách thuê lao động"
-    activate ContractList
-    
+    Staff->>Frontend: Chọn chức năng "Ký hợp đồng với khách thuê lao động"
+    activate Frontend
+
     %% 2. Giao diện danh sách các hợp đồng đã ký hiện lên
-    ContractList->>ContractController: getAllContracts()
+    Frontend->>ContractController: GET /api/customer-contract
     activate ContractController
-    
+
     ContractController->>ContractService: getAllContracts()
     activate ContractService
-    
-    ContractService->>ContractRepo: findByIsDeletedFalse()
+
+    ContractService->>ContractServiceImpl: getAllContracts()
+    activate ContractServiceImpl
+
+    ContractServiceImpl->>ContractRepo: findByIsDeletedFalse()
     activate ContractRepo
-    ContractRepo-->>ContractService: Danh sách hợp đồng
+    ContractRepo-->>ContractServiceImpl: List<CustomerContract>
     deactivate ContractRepo
-    
-    ContractService-->>ContractController: Danh sách hợp đồng
+
+    ContractServiceImpl-->>ContractService: List<CustomerContract>
+    deactivate ContractServiceImpl
+
+    ContractService-->>ContractController: List<CustomerContract>
     deactivate ContractService
-    
-    ContractController-->>ContractList: ResponseEntity<List<CustomerContract>>
+
+    ContractController-->>Frontend: ResponseEntity<List<CustomerContract>>
     deactivate ContractController
-    
-    ContractList->>ContractList: Sắp xếp hợp đồng theo thời gian mới nhất
-    
+
+    Frontend->>Frontend: Sắp xếp hợp đồng theo thời gian mới nhất
+
     %% 3. Nhân viên click nút "Thêm hợp đồng" để tạo hợp đồng mới
-    Staff->>ContractList: Click nút "Thêm hợp đồng"
-    
-    %% 4. Giao diện tìm khách hàng hiện lên
-    ContractList->>SelectionDialog: Mở dialog tìm kiếm khách hàng
-    activate SelectionDialog
-    
-    %% 5. Nhân viên nhập tên khách hàng và click tìm
-    Staff->>SelectionDialog: Nhập tên khách hàng và click tìm
-    
+    Staff->>Frontend: Click nút "Thêm hợp đồng"
+
+    %% 4-5. Giao diện tìm khách hàng hiện lên và nhân viên nhập tên khách hàng
+    Staff->>Frontend: Nhập tên khách hàng và click tìm
+
     %% 6. Giao diện hiện lên danh sách các khách hàng có tên chứa từ khóa vừa nhập
-    SelectionDialog->>CustomerController: searchCustomers(fullName, null)
+    Frontend->>CustomerController: GET /api/customer/search?fullName={keyword}
     activate CustomerController
-    
+
     CustomerController->>CustomerService: searchCustomers(fullName, null)
     activate CustomerService
-    
-    CustomerService->>CustomerRepo: findByFullNameContainingAndIsDeletedFalse(fullName)
+
+    CustomerService->>CustomerServiceImpl: searchCustomers(fullName, null)
+    activate CustomerServiceImpl
+
+    CustomerServiceImpl->>CustomerRepo: findByFullNameContainingAndIsDeletedFalse(fullName)
     activate CustomerRepo
-    CustomerRepo-->>CustomerService: Danh sách khách hàng phù hợp
+    CustomerRepo-->>CustomerServiceImpl: List<Customer>
     deactivate CustomerRepo
-    
-    CustomerService-->>CustomerController: Danh sách khách hàng
+
+    CustomerServiceImpl-->>CustomerService: List<Customer>
+    deactivate CustomerServiceImpl
+
+    CustomerService-->>CustomerController: List<Customer>
     deactivate CustomerService
-    
-    CustomerController-->>SelectionDialog: ResponseEntity<List<Customer>>
+
+    CustomerController-->>Frontend: ResponseEntity<List<Customer>>
     deactivate CustomerController
-    
-    SelectionDialog->>SelectionDialog: Hiển thị danh sách khách hàng
-    
+
+    Frontend->>Frontend: Hiển thị danh sách khách hàng
+
     %% 7. Nhân viên chọn đúng khách hàng
-    Staff->>SelectionDialog: Chọn khách hàng
-    
-    SelectionDialog-->>ContractList: handleSelectCustomer(customer)
-    deactivate SelectionDialog
-    
-    ContractList->>ContractList: setSelectedCustomer(customer)
-    
+    Staff->>Frontend: Chọn khách hàng
+
     %% 8. Nhân viên chọn đầu việc và nhập thông tin hợp đồng
-    ContractList->>ContractForm: Mở form thêm hợp đồng
-    activate ContractForm
-    
     %% Lấy danh sách loại công việc (đầu việc)
-    ContractForm->>JobController: getAllJobCategories()
+    Frontend->>JobController: GET /api/job-category
     activate JobController
-    
+
     JobController->>JobService: getAllJobCategories()
     activate JobService
-    
-    JobService->>JobRepo: findByIsDeletedFalse()
+
+    JobService->>JobServiceImpl: getAllJobCategories()
+    activate JobServiceImpl
+
+    JobServiceImpl->>JobRepo: findByIsDeletedFalse()
     activate JobRepo
-    JobRepo-->>JobService: Danh sách loại công việc
+    JobRepo-->>JobServiceImpl: List<JobCategory>
     deactivate JobRepo
-    
-    JobService-->>JobController: Danh sách loại công việc
+
+    JobServiceImpl-->>JobService: List<JobCategory>
+    deactivate JobServiceImpl
+
+    JobService-->>JobController: List<JobCategory>
     deactivate JobService
-    
-    JobController-->>ContractForm: ResponseEntity<List<JobCategory>>
+
+    JobController-->>Frontend: ResponseEntity<List<JobCategory>>
     deactivate JobController
-    
+
     %% Nhân viên nhập thông tin hợp đồng
-    Staff->>ContractForm: Chọn loại công việc
-    Staff->>ContractForm: Nhập thời gian thuê (từ ngày - đến ngày)
-    Staff->>ContractForm: Nhập số lượng nhân công cần thuê
-    Staff->>ContractForm: Nhập địa điểm làm việc
-    Staff->>ContractForm: Nhập tổng giá trị hợp đồng
-    Staff->>ContractForm: Nhập mô tả công việc
-    
+    Staff->>Frontend: Chọn loại công việc
+    Staff->>Frontend: Nhập thời gian thuê (từ ngày - đến ngày)
+    Staff->>Frontend: Nhập số lượng nhân công cần thuê
+    Staff->>Frontend: Nhập địa điểm làm việc
+    Staff->>Frontend: Nhập tổng giá trị hợp đồng
+    Staff->>Frontend: Nhập mô tả công việc
+
     %% 9. Nhân viên xác nhận lại toàn bộ thông tin và click lưu
-    Staff->>ContractForm: Xác nhận thông tin và click "Lưu hợp đồng"
-    
-    ContractForm->>ContractList: handleSave()
-    deactivate ContractForm
-    
+    Staff->>Frontend: Xác nhận thông tin và click "Lưu hợp đồng"
+
     %% 10. Hệ thống lưu lại hợp đồng
-    ContractList->>ContractController: createContract(contract)
+    Frontend->>ContractController: POST /api/customer-contract
     activate ContractController
-    
+
     ContractController->>ContractService: createContract(contract)
     activate ContractService
-    
+
+    ContractService->>ContractServiceImpl: createContract(contract)
+    activate ContractServiceImpl
+
     %% Kiểm tra thông tin khách hàng
-    ContractService->>CustomerClient: checkCustomerExists(contract.customerId)
+    ContractServiceImpl->>CustomerClient: checkCustomerExists(contract.customerId)
     activate CustomerClient
-    
-    CustomerClient->>CustomerController: checkCustomerExists(id)
+
+    CustomerClient->>CustomerController: GET /api/customer/{id}/check-customer-exists
     activate CustomerController
-    
+
     CustomerController->>CustomerService: checkCustomerExists(id)
     activate CustomerService
-    
-    CustomerService->>CustomerRepo: findByIdAndIsDeletedFalse(id)
+
+    CustomerService->>CustomerServiceImpl: checkCustomerExists(id)
+    activate CustomerServiceImpl
+
+    CustomerServiceImpl->>CustomerRepo: findByIdAndIsDeletedFalse(id)
     activate CustomerRepo
-    CustomerRepo-->>CustomerService: Optional<Customer>
+    CustomerRepo-->>CustomerServiceImpl: Optional<Customer>
     deactivate CustomerRepo
-    
+
+    CustomerServiceImpl-->>CustomerService: boolean
+    deactivate CustomerServiceImpl
+
     CustomerService-->>CustomerController: boolean
     deactivate CustomerService
-    
+
     CustomerController-->>CustomerClient: ResponseEntity<Boolean>
     deactivate CustomerController
-    
-    CustomerClient-->>ContractService: Boolean
+
+    CustomerClient-->>ContractServiceImpl: Boolean
     deactivate CustomerClient
-    
+
     %% Kiểm tra thông tin loại công việc
-    ContractService->>JobClient: checkJobCategoryExists(contract.jobCategoryId)
+    ContractServiceImpl->>JobClient: checkJobCategoryExists(contract.jobCategoryId)
     activate JobClient
-    
-    JobClient->>JobController: checkJobCategoryExists(id)
+
+    JobClient->>JobController: GET /api/job-category/{id}/check-job-category-exists
     activate JobController
-    
+
     JobController->>JobService: checkJobCategoryExists(id)
     activate JobService
-    
-    JobService->>JobRepo: findByIdAndIsDeletedFalse(id)
+
+    JobService->>JobServiceImpl: checkJobCategoryExists(id)
+    activate JobServiceImpl
+
+    JobServiceImpl->>JobRepo: findByIdAndIsDeletedFalse(id)
     activate JobRepo
-    JobRepo-->>JobService: Optional<JobCategory>
+    JobRepo-->>JobServiceImpl: Optional<JobCategory>
     deactivate JobRepo
-    
+
+    JobServiceImpl-->>JobService: boolean
+    deactivate JobServiceImpl
+
     JobService-->>JobController: boolean
     deactivate JobService
-    
+
     JobController-->>JobClient: ResponseEntity<Boolean>
     deactivate JobController
-    
-    JobClient-->>ContractService: Boolean
+
+    JobClient-->>ContractServiceImpl: Boolean
     deactivate JobClient
-    
-    %% Lưu hợp đồng
-    ContractService->>ContractService: Thiết lập các giá trị mặc định (status, createdAt, updatedAt, isDeleted)
-    
-    ContractService->>ContractRepo: save(contract)
+
+    %% Thiết lập giá trị mặc định và lưu hợp đồng
+    ContractServiceImpl->>ContractServiceImpl: Thiết lập các giá trị mặc định (status, createdAt, updatedAt, isDeleted)
+
+    ContractServiceImpl->>ContractRepo: save(contract)
     activate ContractRepo
-    ContractRepo-->>ContractService: Hợp đồng đã lưu
+    ContractRepo-->>ContractServiceImpl: CustomerContract
     deactivate ContractRepo
-    
+
     %% Tạo mã hợp đồng nếu chưa có
-    ContractService->>ContractService: Tạo mã hợp đồng nếu chưa có
-    
-    ContractService->>ContractRepo: save(contract) (nếu cần cập nhật mã hợp đồng)
+    ContractServiceImpl->>ContractServiceImpl: Tạo mã hợp đồng nếu chưa có
+
+    ContractServiceImpl->>ContractRepo: save(contract) (nếu cần cập nhật mã hợp đồng)
     activate ContractRepo
-    ContractRepo-->>ContractService: Hợp đồng đã lưu
+    ContractRepo-->>ContractServiceImpl: CustomerContract
     deactivate ContractRepo
-    
-    ContractService-->>ContractController: Hợp đồng đã lưu
+
+    ContractServiceImpl-->>ContractService: CustomerContract
+    deactivate ContractServiceImpl
+
+    ContractService-->>ContractController: CustomerContract
     deactivate ContractService
-    
-    ContractController-->>ContractList: ResponseEntity<CustomerContract>
+
+    ContractController-->>Frontend: ResponseEntity<CustomerContract>
     deactivate ContractController
-    
+
     %% Cập nhật danh sách hợp đồng
-    ContractList->>ContractController: getAllContracts()
+    Frontend->>ContractController: GET /api/customer-contract
     activate ContractController
-    
+
     ContractController->>ContractService: getAllContracts()
     activate ContractService
-    
-    ContractService->>ContractRepo: findByIsDeletedFalse()
+
+    ContractService->>ContractServiceImpl: getAllContracts()
+    activate ContractServiceImpl
+
+    ContractServiceImpl->>ContractRepo: findByIsDeletedFalse()
     activate ContractRepo
-    ContractRepo-->>ContractService: Danh sách hợp đồng
+    ContractRepo-->>ContractServiceImpl: List<CustomerContract>
     deactivate ContractRepo
-    
-    ContractService-->>ContractController: Danh sách hợp đồng
+
+    ContractServiceImpl-->>ContractService: List<CustomerContract>
+    deactivate ContractServiceImpl
+
+    ContractService-->>ContractController: List<CustomerContract>
     deactivate ContractService
-    
-    ContractController-->>ContractList: ResponseEntity<List<CustomerContract>>
+
+    ContractController-->>Frontend: ResponseEntity<List<CustomerContract>>
     deactivate ContractController
-    
-    ContractList->>ContractList: Sắp xếp hợp đồng theo thời gian mới nhất
-    
-    ContractList-->>Staff: Hiển thị thông báo thành công
-    deactivate ContractList
+
+    Frontend->>Frontend: Sắp xếp hợp đồng theo thời gian mới nhất
+
+    Frontend-->>Staff: Hiển thị thông báo thành công
+    deactivate Frontend
 ```
 
-## Giải thích chi tiết các bước trong sơ đồ
+## Giải thích chi tiết các thành phần trong sơ đồ
 
-### 1. Mở danh sách hợp đồng
-- Nhân viên chọn chức năng "Ký hợp đồng với khách thuê lao động"
-- CustomerContractList gọi API getAllContracts() của CustomerContractController
-- CustomerContractController gọi CustomerContractService để lấy danh sách hợp đồng
-- CustomerContractService truy vấn dữ liệu từ CustomerContractRepository
-- Danh sách hợp đồng được trả về và hiển thị, sắp xếp theo thời gian mới nhất
+### 1. Frontend
+- **Frontend**: Đại diện cho toàn bộ giao diện người dùng, bao gồm các component như CustomerContractList, CustomerSelectionDialog, ContractForm, v.v.
 
-### 2. Tìm kiếm khách hàng
-- Nhân viên click nút "Thêm hợp đồng" để mở CustomerSelectionDialog
-- Nhân viên nhập tên khách hàng và tìm kiếm
-- CustomerSelectionDialog gọi API searchCustomers() của CustomerController
-- CustomerController gọi CustomerService để tìm kiếm khách hàng
-- CustomerService truy vấn dữ liệu từ CustomerRepository
-- Danh sách khách hàng phù hợp được trả về và hiển thị
-
-### 3. Chọn khách hàng
-- Nhân viên chọn khách hàng từ danh sách
-- CustomerSelectionDialog gọi handleSelectCustomer() của CustomerContractList
-- CustomerContractList lưu thông tin khách hàng đã chọn
-
-### 4. Nhập thông tin hợp đồng
-- ContractForm được mở để nhập thông tin hợp đồng
-- ContractForm gọi API getAllJobCategories() của JobCategoryController để lấy danh sách loại công việc
-- Nhân viên nhập các thông tin hợp đồng: loại công việc, thời gian thuê, số lượng nhân công, địa điểm làm việc, tổng giá trị, mô tả
-
-### 5. Lưu hợp đồng
-- Nhân viên xác nhận thông tin và click "Lưu hợp đồng"
-- ContractForm gọi handleSave() của CustomerContractList
-- CustomerContractList gọi API createContract() của CustomerContractController
-- CustomerContractController gọi CustomerContractService để tạo hợp đồng mới
-- CustomerContractService kiểm tra thông tin khách hàng và loại công việc thông qua CustomerClient và JobCategoryClient
-- CustomerContractService thiết lập các giá trị mặc định và lưu hợp đồng vào CustomerContractRepository
-- Hợp đồng mới được trả về và thêm vào danh sách
-- Danh sách hợp đồng được cập nhật và hiển thị thông báo thành công
-
-## Các thành phần tham gia
-
-### Frontend
-- **CustomerContractList**: Component hiển thị danh sách hợp đồng và xử lý các thao tác CRUD
-- **CustomerSelectionDialog**: Dialog tìm kiếm và chọn khách hàng
-- **ContractForm**: Form nhập thông tin hợp đồng
-
-### Backend
+### 2. customer-contract-service
 - **CustomerContractController**: REST API controller xử lý các request liên quan đến hợp đồng
-- **CustomerContractServiceImpl**: Triển khai logic nghiệp vụ cho hợp đồng
-- **CustomerController**: REST API controller xử lý các request liên quan đến khách hàng
-- **CustomerServiceImpl**: Triển khai logic nghiệp vụ cho khách hàng
-- **JobCategoryController**: REST API controller xử lý các request liên quan đến loại công việc
-- **JobCategoryServiceImpl**: Triển khai logic nghiệp vụ cho loại công việc
+- **CustomerContractService**: Interface định nghĩa các phương thức dịch vụ cho hợp đồng
+- **CustomerContractServiceImpl**: Lớp triển khai (implements) của CustomerContractService, chứa logic nghiệp vụ cho hợp đồng
 - **CustomerContractRepository**: Interface truy cập dữ liệu hợp đồng
-- **CustomerRepository**: Interface truy cập dữ liệu khách hàng
-- **JobCategoryRepository**: Interface truy cập dữ liệu loại công việc
 - **CustomerClient**: Feign client gọi đến customer-service
 - **JobCategoryClient**: Feign client gọi đến job-service
+
+### 3. customer-service
+- **CustomerController**: REST API controller xử lý các request liên quan đến khách hàng
+- **CustomerService**: Interface định nghĩa các phương thức dịch vụ cho khách hàng
+- **CustomerServiceImpl**: Lớp triển khai (implements) của CustomerService, chứa logic nghiệp vụ cho khách hàng
+- **CustomerRepository**: Interface truy cập dữ liệu khách hàng
+
+### 4. job-service
+- **JobCategoryController**: REST API controller xử lý các request liên quan đến loại công việc
+- **JobCategoryService**: Interface định nghĩa các phương thức dịch vụ cho loại công việc
+- **JobCategoryServiceImpl**: Lớp triển khai (implements) của JobCategoryService, chứa logic nghiệp vụ cho loại công việc
+- **JobCategoryRepository**: Interface truy cập dữ liệu loại công việc
+
+## Luồng xử lý chi tiết
+
+### 1. Hiển thị danh sách hợp đồng
+- Nhân viên chọn chức năng "Ký hợp đồng với khách thuê lao động"
+- Frontend gửi request GET đến `/api/customer-contract` của CustomerContractController
+- CustomerContractController gọi phương thức getAllContracts() của CustomerContractService (interface)
+- CustomerContractService chuyển tiếp yêu cầu đến CustomerContractServiceImpl
+- CustomerContractServiceImpl gọi phương thức findByIsDeletedFalse() của CustomerContractRepository
+- Danh sách hợp đồng được trả về qua các lớp trung gian và hiển thị, sắp xếp theo thời gian mới nhất
+
+### 2. Tìm kiếm khách hàng
+- Nhân viên click nút "Thêm hợp đồng" và nhập tên khách hàng để tìm kiếm
+- Frontend gửi request GET đến `/api/customer/search?fullName={keyword}` của CustomerController
+- CustomerController gọi phương thức searchCustomers() của CustomerService (interface)
+- CustomerService chuyển tiếp yêu cầu đến CustomerServiceImpl
+- CustomerServiceImpl gọi phương thức findByFullNameContainingAndIsDeletedFalse() của CustomerRepository
+- Danh sách khách hàng phù hợp được trả về qua các lớp trung gian và hiển thị
+
+### 3. Lấy danh sách loại công việc
+- Frontend gửi request GET đến `/api/job-category` của JobCategoryController
+- JobCategoryController gọi phương thức getAllJobCategories() của JobCategoryService (interface)
+- JobCategoryService chuyển tiếp yêu cầu đến JobCategoryServiceImpl
+- JobCategoryServiceImpl gọi phương thức findByIsDeletedFalse() của JobCategoryRepository
+- Danh sách loại công việc được trả về qua các lớp trung gian và hiển thị
+
+### 4. Tạo hợp đồng mới
+- Nhân viên nhập thông tin hợp đồng và click "Lưu hợp đồng"
+- Frontend gửi request POST đến `/api/customer-contract` của CustomerContractController
+- CustomerContractController gọi phương thức createContract() của CustomerContractService (interface)
+- CustomerContractService chuyển tiếp yêu cầu đến CustomerContractServiceImpl
+- CustomerContractServiceImpl thực hiện các bước:
+  1. Kiểm tra khách hàng tồn tại thông qua CustomerClient
+  2. Kiểm tra loại công việc tồn tại thông qua JobCategoryClient
+  3. Thiết lập các giá trị mặc định cho hợp đồng
+  4. Lưu hợp đồng vào cơ sở dữ liệu thông qua CustomerContractRepository
+  5. Tạo mã hợp đồng nếu chưa có và cập nhật lại
+- Hợp đồng mới được trả về qua các lớp trung gian và Frontend hiển thị thông báo thành công
+
+### 5. Cập nhật danh sách hợp đồng
+- Frontend gửi request GET đến `/api/customer-contract` để lấy danh sách hợp đồng đã cập nhật
+- Luồng xử lý tương tự như bước 1
+- Danh sách hợp đồng mới được hiển thị, sắp xếp theo thời gian mới nhất
