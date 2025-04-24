@@ -2,12 +2,13 @@
 
 Sơ đồ tuần tự dưới đây mô tả chi tiết luồng hoạt động của module "Ký hợp đồng với khách thuê lao động" trong kiến trúc vi dịch vụ (microservices), tập trung vào backend và chỉ rõ các lớp thuộc về từng microservice.
 
-## Các microservice tham gia
+## Các thành phần tham gia
 
 1. **Frontend**: Giao diện người dùng
-2. **customer-service**: Quản lý thông tin khách hàng
-3. **job-service**: Quản lý thông tin loại công việc (đầu việc)
-4. **customer-contract-service**: Quản lý hợp đồng với khách hàng
+2. **api-gateway**: Cổng vào cho tất cả các request từ frontend đến các microservice
+3. **customer-service**: Quản lý thông tin khách hàng
+4. **job-service**: Quản lý thông tin loại công việc (đầu việc)
+5. **customer-contract-service**: Quản lý hợp đồng với khách hàng
 
 ## Sơ đồ tuần tự
 
@@ -17,6 +18,10 @@ sequenceDiagram
 
     box Frontend
         participant Frontend
+    end
+
+    box api-gateway
+        participant ApiGateway
     end
 
     box customer-contract-service
@@ -47,7 +52,10 @@ sequenceDiagram
     activate Frontend
 
     %% 2. Giao diện danh sách các hợp đồng đã ký hiện lên
-    Frontend->>ContractController: GET /api/customer-contract
+    Frontend->>ApiGateway: GET /api/customer-contract
+    activate ApiGateway
+
+    ApiGateway->>ContractController: GET /api/customer-contract
     activate ContractController
 
     ContractController->>ContractService: getAllContracts()
@@ -67,8 +75,11 @@ sequenceDiagram
     ContractService-->>ContractController: List<CustomerContract>
     deactivate ContractService
 
-    ContractController-->>Frontend: ResponseEntity<List<CustomerContract>>
+    ContractController-->>ApiGateway: ResponseEntity<List<CustomerContract>>
     deactivate ContractController
+
+    ApiGateway-->>Frontend: ResponseEntity<List<CustomerContract>>
+    deactivate ApiGateway
 
     Frontend->>Frontend: Sắp xếp hợp đồng theo thời gian mới nhất
 
@@ -79,7 +90,10 @@ sequenceDiagram
     Staff->>Frontend: Nhập tên khách hàng và click tìm
 
     %% 6. Giao diện hiện lên danh sách các khách hàng có tên chứa từ khóa vừa nhập
-    Frontend->>CustomerController: GET /api/customer/search?fullName={keyword}
+    Frontend->>ApiGateway: GET /api/customer/search?fullName={keyword}
+    activate ApiGateway
+
+    ApiGateway->>CustomerController: GET /api/customer/search?fullName={keyword}
     activate CustomerController
 
     CustomerController->>CustomerService: searchCustomers(fullName, null)
@@ -99,8 +113,11 @@ sequenceDiagram
     CustomerService-->>CustomerController: List<Customer>
     deactivate CustomerService
 
-    CustomerController-->>Frontend: ResponseEntity<List<Customer>>
+    CustomerController-->>ApiGateway: ResponseEntity<List<Customer>>
     deactivate CustomerController
+
+    ApiGateway-->>Frontend: ResponseEntity<List<Customer>>
+    deactivate ApiGateway
 
     Frontend->>Frontend: Hiển thị danh sách khách hàng
 
@@ -109,7 +126,10 @@ sequenceDiagram
 
     %% 8. Nhân viên chọn đầu việc và nhập thông tin hợp đồng
     %% Lấy danh sách loại công việc (đầu việc)
-    Frontend->>JobController: GET /api/job-category
+    Frontend->>ApiGateway: GET /api/job-category
+    activate ApiGateway
+
+    ApiGateway->>JobController: GET /api/job-category
     activate JobController
 
     JobController->>JobService: getAllJobCategories()
@@ -129,8 +149,11 @@ sequenceDiagram
     JobService-->>JobController: List<JobCategory>
     deactivate JobService
 
-    JobController-->>Frontend: ResponseEntity<List<JobCategory>>
+    JobController-->>ApiGateway: ResponseEntity<List<JobCategory>>
     deactivate JobController
+
+    ApiGateway-->>Frontend: ResponseEntity<List<JobCategory>>
+    deactivate ApiGateway
 
     %% Nhân viên nhập thông tin hợp đồng
     Staff->>Frontend: Chọn loại công việc
@@ -144,7 +167,10 @@ sequenceDiagram
     Staff->>Frontend: Xác nhận thông tin và click "Lưu hợp đồng"
 
     %% 10. Hệ thống lưu lại hợp đồng
-    Frontend->>ContractController: POST /api/customer-contract
+    Frontend->>ApiGateway: POST /api/customer-contract
+    activate ApiGateway
+
+    ApiGateway->>ContractController: POST /api/customer-contract
     activate ContractController
 
     ContractController->>ContractService: createContract(contract)
@@ -235,11 +261,17 @@ sequenceDiagram
     ContractService-->>ContractController: CustomerContract
     deactivate ContractService
 
-    ContractController-->>Frontend: ResponseEntity<CustomerContract>
+    ContractController-->>ApiGateway: ResponseEntity<CustomerContract>
     deactivate ContractController
 
+    ApiGateway-->>Frontend: ResponseEntity<CustomerContract>
+    deactivate ApiGateway
+
     %% Cập nhật danh sách hợp đồng
-    Frontend->>ContractController: GET /api/customer-contract
+    Frontend->>ApiGateway: GET /api/customer-contract
+    activate ApiGateway
+
+    ApiGateway->>ContractController: GET /api/customer-contract
     activate ContractController
 
     ContractController->>ContractService: getAllContracts()
@@ -259,8 +291,11 @@ sequenceDiagram
     ContractService-->>ContractController: List<CustomerContract>
     deactivate ContractService
 
-    ContractController-->>Frontend: ResponseEntity<List<CustomerContract>>
+    ContractController-->>ApiGateway: ResponseEntity<List<CustomerContract>>
     deactivate ContractController
+
+    ApiGateway-->>Frontend: ResponseEntity<List<CustomerContract>>
+    deactivate ApiGateway
 
     Frontend->>Frontend: Sắp xếp hợp đồng theo thời gian mới nhất
 
@@ -273,7 +308,10 @@ sequenceDiagram
 ### 1. Frontend
 - **Frontend**: Đại diện cho toàn bộ giao diện người dùng, bao gồm các component như CustomerContractList, CustomerSelectionDialog, ContractForm, v.v.
 
-### 2. customer-contract-service
+### 2. api-gateway
+- **ApiGateway**: Cổng vào duy nhất cho tất cả các request từ frontend đến các microservice, xử lý việc định tuyến, xác thực và cân bằng tải.
+
+### 3. customer-contract-service
 - **CustomerContractController**: REST API controller xử lý các request liên quan đến hợp đồng
 - **CustomerContractService**: Interface định nghĩa các phương thức dịch vụ cho hợp đồng
 - **CustomerContractServiceImpl**: Lớp triển khai (implements) của CustomerContractService, chứa logic nghiệp vụ cho hợp đồng
@@ -281,13 +319,13 @@ sequenceDiagram
 - **CustomerClient**: Feign client gọi đến customer-service
 - **JobCategoryClient**: Feign client gọi đến job-service
 
-### 3. customer-service
+### 4. customer-service
 - **CustomerController**: REST API controller xử lý các request liên quan đến khách hàng
 - **CustomerService**: Interface định nghĩa các phương thức dịch vụ cho khách hàng
 - **CustomerServiceImpl**: Lớp triển khai (implements) của CustomerService, chứa logic nghiệp vụ cho khách hàng
 - **CustomerRepository**: Interface truy cập dữ liệu khách hàng
 
-### 4. job-service
+### 5. job-service
 - **JobCategoryController**: REST API controller xử lý các request liên quan đến loại công việc
 - **JobCategoryService**: Interface định nghĩa các phương thức dịch vụ cho loại công việc
 - **JobCategoryServiceImpl**: Lớp triển khai (implements) của JobCategoryService, chứa logic nghiệp vụ cho loại công việc
@@ -297,30 +335,37 @@ sequenceDiagram
 
 ### 1. Hiển thị danh sách hợp đồng
 - Nhân viên chọn chức năng "Ký hợp đồng với khách thuê lao động"
-- Frontend gửi request GET đến `/api/customer-contract` của CustomerContractController
+- Frontend gửi request GET đến `/api/customer-contract` thông qua ApiGateway
+- ApiGateway định tuyến request đến CustomerContractController
 - CustomerContractController gọi phương thức getAllContracts() của CustomerContractService (interface)
 - CustomerContractService chuyển tiếp yêu cầu đến CustomerContractServiceImpl
 - CustomerContractServiceImpl gọi phương thức findByIsDeletedFalse() của CustomerContractRepository
-- Danh sách hợp đồng được trả về qua các lớp trung gian và hiển thị, sắp xếp theo thời gian mới nhất
+- Danh sách hợp đồng được trả về qua các lớp trung gian, thông qua ApiGateway đến Frontend
+- Frontend sắp xếp danh sách hợp đồng theo thời gian mới nhất và hiển thị
 
 ### 2. Tìm kiếm khách hàng
 - Nhân viên click nút "Thêm hợp đồng" và nhập tên khách hàng để tìm kiếm
-- Frontend gửi request GET đến `/api/customer/search?fullName={keyword}` của CustomerController
+- Frontend gửi request GET đến `/api/customer/search?fullName={keyword}` thông qua ApiGateway
+- ApiGateway định tuyến request đến CustomerController
 - CustomerController gọi phương thức searchCustomers() của CustomerService (interface)
 - CustomerService chuyển tiếp yêu cầu đến CustomerServiceImpl
 - CustomerServiceImpl gọi phương thức findByFullNameContainingAndIsDeletedFalse() của CustomerRepository
-- Danh sách khách hàng phù hợp được trả về qua các lớp trung gian và hiển thị
+- Danh sách khách hàng phù hợp được trả về qua các lớp trung gian, thông qua ApiGateway đến Frontend
+- Frontend hiển thị danh sách khách hàng
 
 ### 3. Lấy danh sách loại công việc
-- Frontend gửi request GET đến `/api/job-category` của JobCategoryController
+- Frontend gửi request GET đến `/api/job-category` thông qua ApiGateway
+- ApiGateway định tuyến request đến JobCategoryController
 - JobCategoryController gọi phương thức getAllJobCategories() của JobCategoryService (interface)
 - JobCategoryService chuyển tiếp yêu cầu đến JobCategoryServiceImpl
 - JobCategoryServiceImpl gọi phương thức findByIsDeletedFalse() của JobCategoryRepository
-- Danh sách loại công việc được trả về qua các lớp trung gian và hiển thị
+- Danh sách loại công việc được trả về qua các lớp trung gian, thông qua ApiGateway đến Frontend
+- Frontend hiển thị danh sách loại công việc
 
 ### 4. Tạo hợp đồng mới
 - Nhân viên nhập thông tin hợp đồng và click "Lưu hợp đồng"
-- Frontend gửi request POST đến `/api/customer-contract` của CustomerContractController
+- Frontend gửi request POST đến `/api/customer-contract` thông qua ApiGateway
+- ApiGateway định tuyến request đến CustomerContractController
 - CustomerContractController gọi phương thức createContract() của CustomerContractService (interface)
 - CustomerContractService chuyển tiếp yêu cầu đến CustomerContractServiceImpl
 - CustomerContractServiceImpl thực hiện các bước:
@@ -329,9 +374,10 @@ sequenceDiagram
   3. Thiết lập các giá trị mặc định cho hợp đồng
   4. Lưu hợp đồng vào cơ sở dữ liệu thông qua CustomerContractRepository
   5. Tạo mã hợp đồng nếu chưa có và cập nhật lại
-- Hợp đồng mới được trả về qua các lớp trung gian và Frontend hiển thị thông báo thành công
+- Hợp đồng mới được trả về qua các lớp trung gian, thông qua ApiGateway đến Frontend
+- Frontend hiển thị thông báo thành công
 
 ### 5. Cập nhật danh sách hợp đồng
-- Frontend gửi request GET đến `/api/customer-contract` để lấy danh sách hợp đồng đã cập nhật
+- Frontend gửi request GET đến `/api/customer-contract` thông qua ApiGateway để lấy danh sách hợp đồng đã cập nhật
 - Luồng xử lý tương tự như bước 1
 - Danh sách hợp đồng mới được hiển thị, sắp xếp theo thời gian mới nhất

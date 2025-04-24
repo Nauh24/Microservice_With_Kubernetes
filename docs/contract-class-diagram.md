@@ -2,18 +2,34 @@
 
 Sơ đồ lớp dưới đây mô tả chi tiết các lớp và mối quan hệ giữa chúng trong module "Ký hợp đồng với khách thuê lao động" theo kiến trúc vi dịch vụ (microservices). Mỗi microservice được thể hiện như một package riêng biệt.
 
-## Các microservice tham gia
+## Các thành phần tham gia
 
-1. **customer-service**: Quản lý thông tin khách hàng
-2. **job-service**: Quản lý thông tin loại công việc (đầu việc)
-3. **customer-contract-service**: Quản lý hợp đồng với khách hàng
-4. **frontend**: Giao diện người dùng
+1. **frontend**: Giao diện người dùng
+2. **api-gateway**: Cổng vào cho tất cả các request từ frontend đến các microservice
+3. **customer-service**: Quản lý thông tin khách hàng
+4. **job-service**: Quản lý thông tin loại công việc (đầu việc)
+5. **customer-contract-service**: Quản lý hợp đồng với khách hàng
 
 ## Sơ đồ lớp
 
 ```mermaid
 classDiagram
     %% Microservice packages
+    namespace frontend {
+        class CustomerContractList
+        class CustomerSelectionDialog
+        class CustomerAddDialog
+        class ContractForm
+        class ContractDetail
+    }
+
+    namespace api-gateway {
+        class ApiGateway
+        class RouteConfig
+        class AuthFilter
+        class LoadBalancer
+    }
+
     namespace customer-service {
         class CustomerController
         class CustomerService
@@ -40,14 +56,6 @@ classDiagram
         class JobCategoryServiceImpl
         class JobCategory
         class JobCategoryRepository
-    }
-
-    namespace frontend {
-        class CustomerContractList
-        class CustomerSelectionDialog
-        class CustomerAddDialog
-        class ContractForm
-        class ContractDetail
     }
 
     %% Customer Service
@@ -235,6 +243,32 @@ classDiagram
         +List<JobCategory> findByIsDeletedFalse()
     }
 
+    %% API Gateway Components
+    class ApiGateway {
+        +route(HttpServletRequest request)
+        +handleResponse(ClientHttpResponse response)
+        +handleError(Exception ex)
+    }
+
+    class RouteConfig {
+        -Map<String, String> routes
+        +getRoute(String path)
+        +addRoute(String path, String serviceId)
+        +removeRoute(String path)
+    }
+
+    class AuthFilter {
+        +doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+        +validateToken(String token)
+        +extractUserInfo(String token)
+    }
+
+    class LoadBalancer {
+        -List<ServiceInstance> instances
+        +chooseInstance(String serviceId)
+        +updateInstances(String serviceId, List<ServiceInstance> instances)
+    }
+
     %% Frontend Components
     class CustomerContractList {
         -List<CustomerContract> contracts
@@ -292,6 +326,22 @@ classDiagram
 
     %% Relationships
 
+    %% API Gateway Relationships
+    ApiGateway --> RouteConfig
+    ApiGateway --> AuthFilter
+    ApiGateway --> LoadBalancer
+
+    %% Frontend to API Gateway Relationships
+    CustomerContractList ..> ApiGateway : "HTTP"
+    CustomerSelectionDialog ..> ApiGateway : "HTTP"
+    CustomerAddDialog ..> ApiGateway : "HTTP"
+    ContractForm ..> ApiGateway : "HTTP"
+
+    %% API Gateway to Microservices Relationships
+    ApiGateway ..> CustomerContractController : "HTTP"
+    ApiGateway ..> CustomerController : "HTTP"
+    ApiGateway ..> JobCategoryController : "HTTP"
+
     %% Customer Service Relationships
     CustomerController --> CustomerService
     CustomerService <|.. CustomerServiceImpl
@@ -314,20 +364,33 @@ classDiagram
     JobCategoryServiceImpl --> JobCategoryRepository
     JobCategoryRepository --> JobCategory
 
-    %% Frontend Relationships
+    %% Frontend Component Relationships
     CustomerContractList --> ContractForm
     CustomerContractList --> ContractDetail
     CustomerContractList --> CustomerSelectionDialog
     CustomerSelectionDialog --> CustomerAddDialog
-    CustomerContractList ..> CustomerContractController : "HTTP"
-    CustomerSelectionDialog ..> CustomerController : "HTTP"
-    CustomerAddDialog ..> CustomerController : "HTTP"
-    ContractForm ..> JobCategoryController : "HTTP"
 ```
 
 ## Giải thích chi tiết các thành phần trong sơ đồ
 
-### 1. customer-service
+### 1. frontend
+
+#### Components
+- **CustomerContractList**: Component hiển thị danh sách hợp đồng và xử lý các thao tác CRUD.
+- **CustomerSelectionDialog**: Dialog tìm kiếm và chọn khách hàng.
+- **CustomerAddDialog**: Dialog thêm khách hàng mới.
+- **ContractForm**: Form nhập thông tin hợp đồng.
+- **ContractDetail**: Component hiển thị chi tiết hợp đồng.
+
+### 2. api-gateway
+
+#### Components
+- **ApiGateway**: Lớp chính xử lý việc định tuyến các request từ frontend đến các microservice tương ứng.
+- **RouteConfig**: Lớp cấu hình các route, ánh xạ các đường dẫn URL đến các microservice.
+- **AuthFilter**: Bộ lọc xác thực, kiểm tra và xác thực token trước khi chuyển tiếp request.
+- **LoadBalancer**: Lớp cân bằng tải, phân phối các request đến các instance khác nhau của cùng một microservice.
+
+### 3. customer-service
 
 #### Entities
 - **Customer**: Entity chứa thông tin khách hàng với các thuộc tính như id, fullName, companyName, phoneNumber, email, address, isDeleted, createdAt, updatedAt.
@@ -342,7 +405,7 @@ classDiagram
 #### Repositories
 - **CustomerRepository**: Interface truy cập dữ liệu khách hàng, cung cấp các phương thức như findByIdAndIsDeletedFalse, findByIsDeletedFalse, findByFullNameContainingAndIsDeletedFalse, findByPhoneNumberContainingAndIsDeletedFalse.
 
-### 2. job-service
+### 4. job-service
 
 #### Entities
 - **JobCategory**: Entity chứa thông tin loại công việc với các thuộc tính như id, name, description, isDeleted, createdAt, updatedAt.
@@ -357,7 +420,7 @@ classDiagram
 #### Repositories
 - **JobCategoryRepository**: Interface truy cập dữ liệu loại công việc, cung cấp các phương thức như findByIdAndIsDeletedFalse, findByIsDeletedFalse.
 
-### 3. customer-contract-service
+### 5. customer-contract-service
 
 #### Entities
 - **CustomerContract**: Entity chứa thông tin hợp đồng với các thuộc tính như id, contractCode, startingDate, endingDate, signedDate, numberOfWorkers, totalAmount, address, description, jobCategoryId, customerId, status, isDeleted, createdAt, updatedAt.
@@ -376,16 +439,23 @@ classDiagram
 - **CustomerClient**: Feign client gọi đến customer-service, cung cấp các phương thức như getCustomerById, checkCustomerExists, searchCustomers.
 - **JobCategoryClient**: Feign client gọi đến job-service, cung cấp các phương thức như getJobCategoryById, checkJobCategoryExists, getAllJobCategories.
 
-### 4. frontend
-
-#### Components
-- **CustomerContractList**: Component hiển thị danh sách hợp đồng và xử lý các thao tác CRUD.
-- **CustomerSelectionDialog**: Dialog tìm kiếm và chọn khách hàng.
-- **CustomerAddDialog**: Dialog thêm khách hàng mới.
-- **ContractForm**: Form nhập thông tin hợp đồng.
-- **ContractDetail**: Component hiển thị chi tiết hợp đồng.
-
 ## Mối quan hệ giữa các lớp
+
+### Trong api-gateway
+- **ApiGateway** sử dụng **RouteConfig** để xác định microservice đích cho mỗi request.
+- **ApiGateway** sử dụng **AuthFilter** để xác thực các request trước khi chuyển tiếp.
+- **ApiGateway** sử dụng **LoadBalancer** để cân bằng tải giữa các instance của cùng một microservice.
+
+### Giữa frontend và api-gateway
+- **CustomerContractList** gửi request đến **ApiGateway** thông qua HTTP.
+- **CustomerSelectionDialog** gửi request đến **ApiGateway** thông qua HTTP.
+- **CustomerAddDialog** gửi request đến **ApiGateway** thông qua HTTP.
+- **ContractForm** gửi request đến **ApiGateway** thông qua HTTP.
+
+### Giữa api-gateway và các microservice
+- **ApiGateway** chuyển tiếp request đến **CustomerContractController** thông qua HTTP.
+- **ApiGateway** chuyển tiếp request đến **CustomerController** thông qua HTTP.
+- **ApiGateway** chuyển tiếp request đến **JobCategoryController** thông qua HTTP.
 
 ### Trong customer-service
 - **CustomerController** sử dụng **CustomerService** (interface) để xử lý logic nghiệp vụ.
@@ -408,16 +478,25 @@ classDiagram
 - **CustomerClient** gọi đến **CustomerController** thông qua HTTP.
 - **JobCategoryClient** gọi đến **JobCategoryController** thông qua HTTP.
 
-### Giữa frontend và backend
-- **CustomerContractList** gọi đến **CustomerContractController** thông qua HTTP.
-- **CustomerSelectionDialog** gọi đến **CustomerController** thông qua HTTP.
-- **CustomerAddDialog** gọi đến **CustomerController** thông qua HTTP.
-- **ContractForm** gọi đến **JobCategoryController** thông qua HTTP.
+### Giữa các component frontend
+- **CustomerContractList** sử dụng **ContractForm** để hiển thị form thêm/sửa hợp đồng.
+- **CustomerContractList** sử dụng **ContractDetail** để hiển thị chi tiết hợp đồng.
+- **CustomerContractList** sử dụng **CustomerSelectionDialog** để tìm kiếm và chọn khách hàng.
+- **CustomerSelectionDialog** sử dụng **CustomerAddDialog** để thêm khách hàng mới.
 
 ## Lưu ý về kiến trúc vi dịch vụ
 
 Trong kiến trúc vi dịch vụ, mỗi microservice hoạt động độc lập và giao tiếp với nhau thông qua HTTP API. Các microservice không truy cập trực tiếp vào cơ sở dữ liệu của nhau, mà thông qua các client (như Feign client) để gọi API của microservice khác.
 
+API Gateway đóng vai trò là cổng vào duy nhất cho tất cả các request từ frontend đến các microservice. Nó có các chức năng quan trọng như:
+- **Định tuyến (Routing)**: Chuyển tiếp request đến microservice tương ứng dựa trên URL.
+- **Xác thực (Authentication)**: Kiểm tra và xác thực token trước khi chuyển tiếp request.
+- **Cân bằng tải (Load Balancing)**: Phân phối request đến các instance khác nhau của cùng một microservice.
+- **Giám sát (Monitoring)**: Thu thập thông tin về các request và response để phục vụ việc giám sát hệ thống.
+- **Bảo mật (Security)**: Bảo vệ các microservice khỏi các cuộc tấn công từ bên ngoài.
+
 Mỗi microservice có cơ sở dữ liệu riêng và chỉ quản lý các entity thuộc về domain của mình. Ví dụ, customer-service quản lý entity Customer, job-service quản lý entity JobCategory, và customer-contract-service quản lý entity CustomerContract.
 
 Trong sơ đồ lớp này, các mối quan hệ giữa các entity được thể hiện thông qua các trường khóa ngoại (như customerId, jobCategoryId) thay vì các mối quan hệ trực tiếp, phù hợp với nguyên tắc của kiến trúc vi dịch vụ.
+
+Việc sử dụng API Gateway giúp đơn giản hóa giao tiếp giữa frontend và các microservice, đồng thời cung cấp một lớp bảo mật và kiểm soát truy cập tập trung cho toàn bộ hệ thống.
