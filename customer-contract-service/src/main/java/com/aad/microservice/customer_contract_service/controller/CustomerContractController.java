@@ -2,7 +2,7 @@ package com.aad.microservice.customer_contract_service.controller;
 
 
 import com.aad.microservice.customer_contract_service.model.CustomerContract;
-import com.aad.microservice.customer_contract_service.service.ICustomerContractService;
+import com.aad.microservice.customer_contract_service.service.CustomerContractService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,9 +13,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/customer-contract")
 public class CustomerContractController {
-    private final ICustomerContractService contractService;
+    private final CustomerContractService contractService;
 
-    public CustomerContractController(ICustomerContractService contractService) {
+    public CustomerContractController(CustomerContractService contractService) {
         this.contractService = contractService;
     }
 

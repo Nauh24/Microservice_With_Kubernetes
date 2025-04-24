@@ -4,7 +4,7 @@ import com.aad.microservice.job_service.model.JobCategory;
 
 import java.util.List;
 
-public interface IJobCategoryService {
+public interface JobCategoryService {
     JobCategory createJobCategory(JobCategory jobCategory);
     JobCategory updateJobCategory(JobCategory jobCategory);
     void deleteJobCategory(Long id);

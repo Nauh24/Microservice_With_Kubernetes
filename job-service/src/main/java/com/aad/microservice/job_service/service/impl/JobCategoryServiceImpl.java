@@ -1,9 +1,10 @@
-package com.aad.microservice.job_service.service;
+package com.aad.microservice.job_service.service.impl;
 
 import com.aad.microservice.job_service.exception.AppException;
 import com.aad.microservice.job_service.exception.ErrorCode;
 import com.aad.microservice.job_service.model.JobCategory;
 import com.aad.microservice.job_service.repository.JobCategoryRepository;
+import com.aad.microservice.job_service.service.JobCategoryService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class JobCategoryServiceImpl implements IJobCategoryService {
+public class JobCategoryServiceImpl implements JobCategoryService {
     private final JobCategoryRepository jobCategoryRepository;
 
     public JobCategoryServiceImpl(JobCategoryRepository jobCategoryRepository) {

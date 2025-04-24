@@ -1,7 +1,7 @@
 package com.aad.microservice.customer_service.controller;
 
 import com.aad.microservice.customer_service.model.Customer;
-import com.aad.microservice.customer_service.service.ICustomerService;
+import com.aad.microservice.customer_service.service.CustomerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,9 +10,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/customer")
 public class CustomerController {
-    private final ICustomerService customerService;
+    private final CustomerService customerService;
 
-    public CustomerController(ICustomerService customerService) {
+    public CustomerController(CustomerService customerService) {
         this.customerService = customerService;
     }
 

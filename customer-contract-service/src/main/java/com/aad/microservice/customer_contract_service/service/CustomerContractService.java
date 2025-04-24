@@ -5,7 +5,7 @@ import com.aad.microservice.customer_contract_service.model.CustomerContract;
 import java.time.LocalDate;
 import java.util.List;
 
-public interface ICustomerContractService {
+public interface CustomerContractService {
     CustomerContract createContract(CustomerContract contract);
     CustomerContract updateContract(CustomerContract contract);
     void deleteContract(Long id);

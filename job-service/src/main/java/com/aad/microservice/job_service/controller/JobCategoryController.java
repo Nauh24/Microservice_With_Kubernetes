@@ -1,7 +1,7 @@
 package com.aad.microservice.job_service.controller;
 
 import com.aad.microservice.job_service.model.JobCategory;
-import com.aad.microservice.job_service.service.IJobCategoryService;
+import com.aad.microservice.job_service.service.JobCategoryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,9 +10,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/job-category")
 public class JobCategoryController {
-    private final IJobCategoryService jobCategoryService;
+    private final JobCategoryService jobCategoryService;
 
-    public JobCategoryController(IJobCategoryService jobCategoryService) {
+    public JobCategoryController(JobCategoryService jobCategoryService) {
         this.jobCategoryService = jobCategoryService;
     }
 

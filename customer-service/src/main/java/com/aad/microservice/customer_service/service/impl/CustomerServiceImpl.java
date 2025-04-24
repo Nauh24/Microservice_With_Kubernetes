@@ -1,9 +1,10 @@
-package com.aad.microservice.customer_service.service;
+package com.aad.microservice.customer_service.service.impl;
 
 import com.aad.microservice.customer_service.exception.AppException;
 import com.aad.microservice.customer_service.exception.ErrorCode;
 import com.aad.microservice.customer_service.model.Customer;
 import com.aad.microservice.customer_service.repository.CustomerRepository;
+import com.aad.microservice.customer_service.service.CustomerService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -12,7 +13,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Service
-public class CustomerServiceImpl implements ICustomerService {
+public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
 
     public CustomerServiceImpl(CustomerRepository customerRepository) {

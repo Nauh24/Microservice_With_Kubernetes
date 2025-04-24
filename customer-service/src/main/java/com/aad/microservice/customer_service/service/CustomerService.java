@@ -4,7 +4,7 @@ import com.aad.microservice.customer_service.model.Customer;
 
 import java.util.List;
 
-public interface ICustomerService {
+public interface CustomerService {
     Customer createCustomer(Customer customer);
     Customer updateCustomer(Customer customer);
     void deleteCustomer(Long id);

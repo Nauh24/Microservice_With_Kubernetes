@@ -1,4 +1,4 @@
-package com.aad.microservice.customer_contract_service.service;
+package com.aad.microservice.customer_contract_service.service.impl;
 
 import com.aad.microservice.customer_contract_service.client.CustomerClient;
 import com.aad.microservice.customer_contract_service.client.JobCategoryClient;
@@ -7,6 +7,7 @@ import com.aad.microservice.customer_contract_service.exception.AppException;
 import com.aad.microservice.customer_contract_service.exception.ErrorCode;
 import com.aad.microservice.customer_contract_service.model.CustomerContract;
 import com.aad.microservice.customer_contract_service.repository.CustomerContractRepository;
+import com.aad.microservice.customer_contract_service.service.CustomerContractService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class CustomerContractServiceImpl implements ICustomerContractService {
+public class CustomerContractServiceImpl implements CustomerContractService {
     private final CustomerContractRepository contractRepository;
     private final CustomerClient customerClient;
     private final JobCategoryClient jobCategoryClient;
