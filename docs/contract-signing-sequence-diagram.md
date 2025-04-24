@@ -31,6 +31,7 @@ sequenceDiagram
         participant ContractRepo as CustomerContractRepository
         participant CustomerClient
         participant JobClient as JobCategoryClient
+        participant ContractModel as CustomerContract
     end
 
     box customer-service
@@ -38,6 +39,7 @@ sequenceDiagram
         participant CustomerService
         participant CustomerServiceImpl
         participant CustomerRepo as CustomerRepository
+        participant CustomerModel as Customer
     end
 
     box job-service
@@ -45,6 +47,7 @@ sequenceDiagram
         participant JobService as JobCategoryService
         participant JobServiceImpl as JobCategoryServiceImpl
         participant JobRepo as JobCategoryRepository
+        participant JobModel as JobCategory
     end
 
     %% 1. Nhân viên chọn chức năng "Ký hợp đồng với khách thuê lao động"
@@ -66,6 +69,10 @@ sequenceDiagram
 
     ContractServiceImpl->>ContractRepo: findByIsDeletedFalse()
     activate ContractRepo
+    ContractRepo->>ContractModel: Truy vấn dữ liệu
+    activate ContractModel
+    ContractModel-->>ContractRepo: Dữ liệu hợp đồng
+    deactivate ContractModel
     ContractRepo-->>ContractServiceImpl: List<CustomerContract>
     deactivate ContractRepo
 
@@ -104,6 +111,10 @@ sequenceDiagram
 
     CustomerServiceImpl->>CustomerRepo: findByFullNameContainingAndIsDeletedFalse(fullName)
     activate CustomerRepo
+    CustomerRepo->>CustomerModel: Truy vấn dữ liệu
+    activate CustomerModel
+    CustomerModel-->>CustomerRepo: Dữ liệu khách hàng
+    deactivate CustomerModel
     CustomerRepo-->>CustomerServiceImpl: List<Customer>
     deactivate CustomerRepo
 
@@ -140,6 +151,10 @@ sequenceDiagram
 
     JobServiceImpl->>JobRepo: findByIsDeletedFalse()
     activate JobRepo
+    JobRepo->>JobModel: Truy vấn dữ liệu
+    activate JobModel
+    JobModel-->>JobRepo: Dữ liệu loại công việc
+    deactivate JobModel
     JobRepo-->>JobServiceImpl: List<JobCategory>
     deactivate JobRepo
 
@@ -194,6 +209,10 @@ sequenceDiagram
 
     CustomerServiceImpl->>CustomerRepo: findByIdAndIsDeletedFalse(id)
     activate CustomerRepo
+    CustomerRepo->>CustomerModel: Truy vấn dữ liệu theo ID
+    activate CustomerModel
+    CustomerModel-->>CustomerRepo: Dữ liệu khách hàng
+    deactivate CustomerModel
     CustomerRepo-->>CustomerServiceImpl: Optional<Customer>
     deactivate CustomerRepo
 
@@ -224,6 +243,10 @@ sequenceDiagram
 
     JobServiceImpl->>JobRepo: findByIdAndIsDeletedFalse(id)
     activate JobRepo
+    JobRepo->>JobModel: Truy vấn dữ liệu theo ID
+    activate JobModel
+    JobModel-->>JobRepo: Dữ liệu loại công việc
+    deactivate JobModel
     JobRepo-->>JobServiceImpl: Optional<JobCategory>
     deactivate JobRepo
 
@@ -244,6 +267,10 @@ sequenceDiagram
 
     ContractServiceImpl->>ContractRepo: save(contract)
     activate ContractRepo
+    ContractRepo->>ContractModel: Lưu dữ liệu hợp đồng
+    activate ContractModel
+    ContractModel-->>ContractRepo: Dữ liệu hợp đồng đã lưu
+    deactivate ContractModel
     ContractRepo-->>ContractServiceImpl: CustomerContract
     deactivate ContractRepo
 
@@ -252,6 +279,10 @@ sequenceDiagram
 
     ContractServiceImpl->>ContractRepo: save(contract) (nếu cần cập nhật mã hợp đồng)
     activate ContractRepo
+    ContractRepo->>ContractModel: Cập nhật dữ liệu hợp đồng
+    activate ContractModel
+    ContractModel-->>ContractRepo: Dữ liệu hợp đồng đã cập nhật
+    deactivate ContractModel
     ContractRepo-->>ContractServiceImpl: CustomerContract
     deactivate ContractRepo
 
@@ -282,6 +313,10 @@ sequenceDiagram
 
     ContractServiceImpl->>ContractRepo: findByIsDeletedFalse()
     activate ContractRepo
+    ContractRepo->>ContractModel: Truy vấn dữ liệu
+    activate ContractModel
+    ContractModel-->>ContractRepo: Danh sách dữ liệu hợp đồng
+    deactivate ContractModel
     ContractRepo-->>ContractServiceImpl: List<CustomerContract>
     deactivate ContractRepo
 
@@ -318,18 +353,21 @@ sequenceDiagram
 - **CustomerContractRepository**: Interface truy cập dữ liệu hợp đồng
 - **CustomerClient**: Feign client gọi đến customer-service
 - **JobCategoryClient**: Feign client gọi đến job-service
+- **CustomerContract**: Lớp model/entity chứa thông tin hợp đồng với các thuộc tính như id, contractCode, startingDate, endingDate, signedDate, numberOfWorkers, totalAmount, address, description, jobCategoryId, customerId, status, isDeleted, createdAt, updatedAt
 
 ### 4. customer-service
 - **CustomerController**: REST API controller xử lý các request liên quan đến khách hàng
 - **CustomerService**: Interface định nghĩa các phương thức dịch vụ cho khách hàng
 - **CustomerServiceImpl**: Lớp triển khai (implements) của CustomerService, chứa logic nghiệp vụ cho khách hàng
 - **CustomerRepository**: Interface truy cập dữ liệu khách hàng
+- **Customer**: Lớp model/entity chứa thông tin khách hàng với các thuộc tính như id, fullName, companyName, phoneNumber, email, address, isDeleted, createdAt, updatedAt
 
 ### 5. job-service
 - **JobCategoryController**: REST API controller xử lý các request liên quan đến loại công việc
 - **JobCategoryService**: Interface định nghĩa các phương thức dịch vụ cho loại công việc
 - **JobCategoryServiceImpl**: Lớp triển khai (implements) của JobCategoryService, chứa logic nghiệp vụ cho loại công việc
 - **JobCategoryRepository**: Interface truy cập dữ liệu loại công việc
+- **JobCategory**: Lớp model/entity chứa thông tin loại công việc với các thuộc tính như id, name, description, baseSalary, isDeleted, createdAt, updatedAt
 
 ## Luồng xử lý chi tiết
 
