@@ -48,4 +48,11 @@ public class CustomerController {
         boolean exists = customerService.checkCustomerExists(id);
         return ResponseEntity.ok(exists);
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Customer>> searchCustomers(
+            @RequestParam(required = false) String fullName,
+            @RequestParam(required = false) String phoneNumber) {
+        return ResponseEntity.ok(customerService.searchCustomers(fullName, phoneNumber));
+    }
 }

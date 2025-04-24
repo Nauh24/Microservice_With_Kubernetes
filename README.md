@@ -18,7 +18,8 @@ Dự án này sử dụng Docker Compose để chạy đồng thời tất cả 
 6. customer-service: cổng 8085
 7. job-service: cổng 8086
 8. customer-contract-service: cổng 8087
-9. PostgreSQL: cổng 5432
+9. customer-payment-service: cổng 8088
+10. PostgreSQL: cổng 5432
 
 ## Cách sử dụng
 
@@ -86,6 +87,6 @@ http://localhost:8083
 
 ## Lưu ý
 
-- Đảm bảo rằng không có dịch vụ nào đang chạy trên các cổng được sử dụng (8080-8087, 5432)
+- Đảm bảo rằng không có dịch vụ nào đang chạy trên các cổng được sử dụng (8080-8088, 5432)
 - Nếu bạn thay đổi mã nguồn, bạn cần chạy lại script `build-and-run` để build lại các dịch vụ
 - Dữ liệu PostgreSQL được lưu trữ trong volume Docker, vì vậy nó sẽ được giữ lại giữa các lần khởi động

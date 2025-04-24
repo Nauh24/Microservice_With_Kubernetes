@@ -38,6 +38,10 @@ cd api-gateway
 call mvn clean package -DskipTests
 cd ..
 
+cd customer-payment-service
+call mvn clean package -DskipTests
+cd ..
+
 echo All services built successfully!
 echo Starting Docker Compose...
 

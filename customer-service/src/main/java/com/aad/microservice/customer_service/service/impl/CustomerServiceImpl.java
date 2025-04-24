@@ -35,7 +35,7 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setCreatedAt(LocalDateTime.now());
         customer.setUpdatedAt(LocalDateTime.now());
         customer.setIsDeleted(false);
-        
+
         boolean existedEmail = customerRepository.existsByEmailAndIsDeletedFalse(customer.getEmail());
         if (existedEmail) {
             throw new AppException(ErrorCode.Duplicated_Exception, "Email đã tồn tại");
@@ -90,7 +90,7 @@ public class CustomerServiceImpl implements CustomerService {
         existingCustomer.setEmail(customer.getEmail());
         existingCustomer.setAddress(customer.getAddress());
         existingCustomer.setUpdatedAt(LocalDateTime.now());
-        
+
         return customerRepository.save(existingCustomer);
     }
 
@@ -123,5 +123,26 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public boolean checkCustomerExists(Long id) {
         return customerRepository.findByIdAndIsDeletedFalse(id).isPresent();
+    }
+
+    @Override
+    public List<Customer> searchCustomers(String fullName, String phoneNumber) {
+        // Nếu cả hai tham số đều có giá trị
+        if (fullName != null && !fullName.isEmpty() && phoneNumber != null && !phoneNumber.isEmpty()) {
+            return customerRepository.findByFullNameContainingIgnoreCaseAndPhoneNumberContainingAndIsDeletedFalse(fullName, phoneNumber);
+        }
+
+        // Nếu chỉ có fullName
+        if (fullName != null && !fullName.isEmpty()) {
+            return customerRepository.findByFullNameContainingIgnoreCaseAndIsDeletedFalse(fullName);
+        }
+
+        // Nếu chỉ có phoneNumber
+        if (phoneNumber != null && !phoneNumber.isEmpty()) {
+            return customerRepository.findByPhoneNumberContainingAndIsDeletedFalse(phoneNumber);
+        }
+
+        // Nếu không có tham số nào, trả về tất cả khách hàng
+        return getAllCustomers();
     }
 }

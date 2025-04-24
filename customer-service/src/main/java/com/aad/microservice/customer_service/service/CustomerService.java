@@ -10,6 +10,9 @@ public interface CustomerService {
     void deleteCustomer(Long id);
     Customer getCustomerById(Long id);
     List<Customer> getAllCustomers();
-    
+
     boolean checkCustomerExists(Long id);
+
+    // Search methods
+    List<Customer> searchCustomers(String fullName, String phoneNumber);
 }

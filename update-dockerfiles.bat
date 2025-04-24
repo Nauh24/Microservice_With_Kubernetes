@@ -33,4 +33,8 @@ cd api-gateway
 powershell -Command "(Get-Content Dockerfile) -replace 'FROM eclipse-temurin:24-jdk', 'FROM eclipse-temurin:17-jdk' | Set-Content Dockerfile"
 cd ..
 
+cd customer-payment-service
+powershell -Command "(Get-Content Dockerfile) -replace 'FROM openjdk:17-jdk-slim', 'FROM eclipse-temurin:17-jdk' | Set-Content Dockerfile"
+cd ..
+
 echo Dockerfiles updated to use Java 17!

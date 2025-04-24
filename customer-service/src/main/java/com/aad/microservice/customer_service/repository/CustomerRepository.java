@@ -9,10 +9,15 @@ import java.util.Optional;
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
     List<Customer> findByIsDeletedFalse();
     Optional<Customer> findByIdAndIsDeletedFalse(Long id);
-    
+
     Boolean existsByEmailAndIsDeletedFalse(String email);
     Boolean existsByPhoneNumberAndIsDeletedFalse(String phoneNumber);
-    
+
     Boolean existsByEmailAndIsDeletedFalseAndIdNot(String email, Long id);
     Boolean existsByPhoneNumberAndIsDeletedFalseAndIdNot(String phoneNumber, Long id);
+
+    // Search methods
+    List<Customer> findByFullNameContainingIgnoreCaseAndIsDeletedFalse(String fullName);
+    List<Customer> findByPhoneNumberContainingAndIsDeletedFalse(String phoneNumber);
+    List<Customer> findByFullNameContainingIgnoreCaseAndPhoneNumberContainingAndIsDeletedFalse(String fullName, String phoneNumber);
 }

@@ -25,6 +25,9 @@ timeout /t 5
 start cmd /k "cd worker-contract-service && mvn spring-boot:run"
 timeout /t 5
 
+start cmd /k "cd customer-payment-service && mvn spring-boot:run"
+timeout /t 5
+
 echo All services started!
 echo Press any key to stop all services...
 pause > nul
@@ -38,5 +41,6 @@ taskkill /F /FI "WINDOWTITLE eq job-schedule-service*"
 taskkill /F /FI "WINDOWTITLE eq register-service*"
 taskkill /F /FI "WINDOWTITLE eq worker-service*"
 taskkill /F /FI "WINDOWTITLE eq worker-contract-service*"
+taskkill /F /FI "WINDOWTITLE eq customer-payment-service*"
 
 echo All services stopped!

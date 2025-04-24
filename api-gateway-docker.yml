@@ -32,6 +32,10 @@ spring:
           uri: http://customer-contract-service:8087
           predicates:
             - Path=/api/customer-contract/**
+        - id: customer-payment-service
+          uri: http://customer-payment-service:8088
+          predicates:
+            - Path=/api/customer-payment/**
       globalcors:
         corsConfigurations:
           '[/**]':
