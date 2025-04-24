@@ -1,4 +1,4 @@
-package com.aad.microservice.customer_payment_service.dto;
+package com.aad.microservice.customer_payment_service.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ContractPaymentInfoDto {
+public class ContractPaymentInfo {
     private Long contractId;
     private String contractCode;
     private LocalDate startingDate;

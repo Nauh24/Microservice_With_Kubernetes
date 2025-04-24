@@ -3,7 +3,7 @@ package com.aad.microservice.customer_payment_service.service.impl;
 import com.aad.microservice.customer_payment_service.client.CustomerClient;
 import com.aad.microservice.customer_payment_service.client.CustomerContractClient;
 import com.aad.microservice.customer_payment_service.constant.ContractStatusConstants;
-import com.aad.microservice.customer_payment_service.dto.ContractPaymentInfoDto;
+import com.aad.microservice.customer_payment_service.model.ContractPaymentInfo;
 import com.aad.microservice.customer_payment_service.exception.AppException;
 import com.aad.microservice.customer_payment_service.exception.ErrorCode;
 import com.aad.microservice.customer_payment_service.model.Customer;
@@ -130,7 +130,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
     }
 
     @Override
-    public List<ContractPaymentInfoDto> getActiveContractsByCustomerId(Long customerId) {
+    public List<ContractPaymentInfo> getActiveContractsByCustomerId(Long customerId) {
         try {
             System.out.println("Fetching active contracts for customer ID: " + customerId);
 
@@ -160,8 +160,8 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
 
             System.out.println("Found " + activeContracts.size() + " active contracts");
 
-            // Chuyển đổi sang DTO
-            List<ContractPaymentInfoDto> result = activeContracts.stream()
+            // Chuyển đổi sang model
+            List<ContractPaymentInfo> result = activeContracts.stream()
                     .map(contract -> {
                         Double totalPaid = getTotalPaidAmountByContractId(contract.getId());
                         Double totalDue = contract.getTotalAmount() - totalPaid;
@@ -171,7 +171,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
                                 ", Paid: " + totalPaid +
                                 ", Due: " + totalDue);
 
-                        return ContractPaymentInfoDto.builder()
+                        return ContractPaymentInfo.builder()
                                 .contractId(contract.getId())
                                 .contractCode(contract.getContractCode())
                                 .startingDate(contract.getStartingDate())
@@ -186,7 +186,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
                     })
                     .collect(Collectors.toList());
 
-            System.out.println("Returning " + result.size() + " contract payment info DTOs");
+            System.out.println("Returning " + result.size() + " contract payment info objects");
             return result;
 
         } catch (Exception e) {
@@ -201,7 +201,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
     }
 
     @Override
-    public ContractPaymentInfoDto getContractPaymentInfo(Long contractId) {
+    public ContractPaymentInfo getContractPaymentInfo(Long contractId) {
         try {
             // Kiểm tra hợp đồng có tồn tại không
             Boolean contractExists = contractClient.checkContractExists(contractId);
@@ -225,7 +225,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
             Double totalPaid = getTotalPaidAmountByContractId(contractId);
             Double totalDue = contract.getTotalAmount() - totalPaid;
 
-            return ContractPaymentInfoDto.builder()
+            return ContractPaymentInfo.builder()
                     .contractId(contract.getId())
                     .contractCode(contract.getContractCode())
                     .startingDate(contract.getStartingDate())
