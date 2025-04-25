@@ -15,12 +15,14 @@ import java.time.LocalDateTime;
 public class CustomerPayment {
     private Long id;
     private String paymentCode;
-    private LocalDate paymentDate;
-    private Double amount;
-    private String paymentMethod;
-    private String description;
-    private Long contractId;
+    private LocalDateTime paymentDate;
+    private Integer paymentMethod;
+    private Double paymentAmount;
+    private String note;
+    private Long customerContractId;
     private String contractCode;
     private Long customerId;
+    private Boolean isDeleted;
+    private LocalDateTime updatedAt;
     private LocalDateTime createdAt;
 }

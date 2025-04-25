@@ -51,8 +51,8 @@ public class CustomerController {
 
     @GetMapping("/search")
     public ResponseEntity<List<Customer>> searchCustomers(
-            @RequestParam(required = false) String fullName,
+            @RequestParam(required = false) String fullname,
             @RequestParam(required = false) String phoneNumber) {
-        return ResponseEntity.ok(customerService.searchCustomers(fullName, phoneNumber));
+        return ResponseEntity.ok(customerService.searchCustomers(fullname, phoneNumber));
     }
 }

@@ -13,7 +13,7 @@ public interface CustomerPaymentService {
     List<CustomerPayment> getPaymentsByCustomerId(Long customerId);
     List<CustomerPayment> getPaymentsByContractId(Long contractId);
 
-    List<Customer> searchCustomers(String fullName, String phoneNumber);
+    List<Customer> searchCustomers(String fullname, String phoneNumber);
     List<ContractPaymentInfo> getActiveContractsByCustomerId(Long customerId);
     ContractPaymentInfo getContractPaymentInfo(Long contractId);
     Double getTotalPaidAmountByContractId(Long contractId);

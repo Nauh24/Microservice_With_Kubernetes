@@ -1,20 +1,17 @@
 package com.aad.microservice.customer_statistics_service.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class CustomerRevenue {
-    private Long id;
-    private String fullName;
-    private String companyName;
-    private String phoneNumber;
-    private String address;
+public class CustomerRevenue extends Customer {
     private Integer contractCount;
     private Double totalRevenue;
 }

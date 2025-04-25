@@ -16,12 +16,12 @@ public interface CustomerClient {
 
     @GetMapping("/{id}/check-customer-exists")
     Boolean checkCustomerExists(@PathVariable Long id);
-    
+
     @GetMapping
     List<Customer> getAllCustomers();
-    
+
     @GetMapping("/search")
     List<Customer> searchCustomers(
-            @RequestParam(required = false) String fullName,
+            @RequestParam(required = false) String fullname,
             @RequestParam(required = false) String phoneNumber);
 }

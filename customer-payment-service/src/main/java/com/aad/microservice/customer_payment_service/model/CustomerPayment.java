@@ -18,14 +18,15 @@ public class CustomerPayment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String paymentCode;      // Mã thanh toán
-    private LocalDate paymentDate;   // Ngày thanh toán
-    private Double amount;           // Số tiền thanh toán
-    private String description;      // Mô tả thanh toán
-    
+    private String paymentCode;          // Mã thanh toán
+    private LocalDateTime paymentDate;   // Ngày thanh toán
+    private Integer paymentMethod;       // Phương thức thanh toán
+    private Double paymentAmount;        // Số tiền thanh toán
+    private String note;                 // Ghi chú thanh toán
+
     // Quan hệ với các đối tượng khác
-    private Long contractId;         // ID hợp đồng
-    private Long customerId;         // ID khách hàng
+    private Long customerContractId;     // ID hợp đồng
+    private Long customerId;             // ID khách hàng
 
     // Trạng thái và thông tin hệ thống
     private Boolean isDeleted;       // Đánh dấu đã xóa

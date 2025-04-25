@@ -24,18 +24,14 @@ public class JobCategoryServiceImpl implements JobCategoryService {
         jobCategory.setCreatedAt(LocalDateTime.now());
         jobCategory.setUpdatedAt(LocalDateTime.now());
         jobCategory.setIsDeleted(false);
-        
+
         boolean existedName = jobCategoryRepository.existsByNameAndIsDeletedFalse(jobCategory.getName());
         if (existedName) {
             throw new AppException(ErrorCode.Duplicated_Exception, "Tên loại công việc đã tồn tại");
         }
-        
+
         if (jobCategory.getName() == null || jobCategory.getName().trim().isEmpty()) {
             throw new AppException(ErrorCode.NotAllowCreate_Exception, "Tên loại công việc không được để trống");
-        }
-        
-        if (jobCategory.getBaseSalary() == null || jobCategory.getBaseSalary() <= 0) {
-            throw new AppException(ErrorCode.NotAllowCreate_Exception, "Mức lương cơ bản phải lớn hơn 0");
         }
 
         return jobCategoryRepository.save(jobCategory);
@@ -53,21 +49,16 @@ public class JobCategoryServiceImpl implements JobCategoryService {
         if (existedName) {
             throw new AppException(ErrorCode.Duplicated_Exception, "Tên loại công việc đã tồn tại");
         }
-        
+
         if (jobCategory.getName() == null || jobCategory.getName().trim().isEmpty()) {
             throw new AppException(ErrorCode.NotAllowUpdate_Exception, "Tên loại công việc không được để trống");
-        }
-        
-        if (jobCategory.getBaseSalary() == null || jobCategory.getBaseSalary() <= 0) {
-            throw new AppException(ErrorCode.NotAllowUpdate_Exception, "Mức lương cơ bản phải lớn hơn 0");
         }
 
         JobCategory existingJobCategory = existedJobCategory.get();
         existingJobCategory.setName(jobCategory.getName());
         existingJobCategory.setDescription(jobCategory.getDescription());
-        existingJobCategory.setBaseSalary(jobCategory.getBaseSalary());
         existingJobCategory.setUpdatedAt(LocalDateTime.now());
-        
+
         return jobCategoryRepository.save(existingJobCategory);
     }
 

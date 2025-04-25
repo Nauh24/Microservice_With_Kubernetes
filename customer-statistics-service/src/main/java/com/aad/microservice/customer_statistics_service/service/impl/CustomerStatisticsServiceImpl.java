@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +45,8 @@ public class CustomerStatisticsServiceImpl implements CustomerStatisticsService 
         // Lọc hóa đơn trong khoảng thời gian
         List<CustomerPayment> payments = allPayments.stream()
                 .filter(payment -> {
-                    LocalDate paymentDate = payment.getPaymentDate();
+                    LocalDateTime paymentDateTime = payment.getPaymentDate();
+                    LocalDate paymentDate = paymentDateTime != null ? paymentDateTime.toLocalDate() : null;
                     return paymentDate != null &&
                            !paymentDate.isBefore(startDate) &&
                            !paymentDate.isAfter(endDate);
@@ -58,10 +60,14 @@ public class CustomerStatisticsServiceImpl implements CustomerStatisticsService 
         for (Customer customer : customers) {
             CustomerRevenue revenue = new CustomerRevenue();
             revenue.setId(customer.getId());
-            revenue.setFullName(customer.getFullName());
+            revenue.setFullname(customer.getFullname());
             revenue.setCompanyName(customer.getCompanyName());
             revenue.setPhoneNumber(customer.getPhoneNumber());
+            revenue.setEmail(customer.getEmail());
             revenue.setAddress(customer.getAddress());
+            revenue.setIsDeleted(customer.getIsDeleted());
+            revenue.setCreatedAt(customer.getCreatedAt());
+            revenue.setUpdatedAt(customer.getUpdatedAt());
             revenue.setContractCount(0);
             revenue.setTotalRevenue(0.0);
 
@@ -80,9 +86,10 @@ public class CustomerStatisticsServiceImpl implements CustomerStatisticsService 
         // Tính tổng doanh thu cho mỗi khách hàng
         for (CustomerPayment payment : payments) {
             Long customerId = payment.getCustomerId();
-            if (customerRevenueMap.containsKey(customerId)) {
+            Double paymentAmount = payment.getPaymentAmount();
+            if (customerRevenueMap.containsKey(customerId) && paymentAmount != null) {
                 CustomerRevenue revenue = customerRevenueMap.get(customerId);
-                revenue.setTotalRevenue(revenue.getTotalRevenue() + payment.getAmount());
+                revenue.setTotalRevenue(revenue.getTotalRevenue() + paymentAmount);
             }
         }
 
@@ -101,7 +108,8 @@ public class CustomerStatisticsServiceImpl implements CustomerStatisticsService 
         // Lọc hóa đơn trong khoảng thời gian
         List<CustomerPayment> filteredPayments = customerPayments.stream()
                 .filter(payment -> {
-                    LocalDate paymentDate = payment.getPaymentDate();
+                    LocalDateTime paymentDateTime = payment.getPaymentDate();
+                    LocalDate paymentDate = paymentDateTime != null ? paymentDateTime.toLocalDate() : null;
                     return paymentDate != null &&
                            !paymentDate.isBefore(startDate) &&
                            !paymentDate.isAfter(endDate);
@@ -110,8 +118,17 @@ public class CustomerStatisticsServiceImpl implements CustomerStatisticsService 
 
         // Lấy thông tin mã hợp đồng cho mỗi hóa đơn
         for (CustomerPayment payment : filteredPayments) {
-            CustomerContract contract = contractClient.getContractById(payment.getContractId());
-            payment.setContractCode(contract.getContractCode());
+            if (payment.getCustomerContractId() != null) {
+                try {
+                    CustomerContract contract = contractClient.getContractById(payment.getCustomerContractId());
+                    if (contract != null) {
+                        payment.setContractCode(contract.getContractCode());
+                    }
+                } catch (Exception e) {
+                    // Xử lý trường hợp không tìm thấy hợp đồng
+                    System.out.println("Không thể lấy thông tin hợp đồng ID: " + payment.getCustomerContractId() + " - " + e.getMessage());
+                }
+            }
         }
 
         return filteredPayments;

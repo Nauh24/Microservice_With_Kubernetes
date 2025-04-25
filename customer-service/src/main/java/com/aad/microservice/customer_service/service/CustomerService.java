@@ -14,5 +14,5 @@ public interface CustomerService {
     boolean checkCustomerExists(Long id);
 
     // Search methods
-    List<Customer> searchCustomers(String fullName, String phoneNumber);
+    List<Customer> searchCustomers(String fullname, String phoneNumber);
 }

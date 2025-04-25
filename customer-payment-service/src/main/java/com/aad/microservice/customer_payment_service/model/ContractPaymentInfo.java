@@ -19,7 +19,7 @@ public class ContractPaymentInfo {
     private Double totalAmount;
     private Double totalPaid;
     private Double totalDue;
-    private String customerName;
+    private String customerName; // Tên khách hàng (từ fullname)
     private Long customerId;
     private Integer status;
 }

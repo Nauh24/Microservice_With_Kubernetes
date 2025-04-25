@@ -13,7 +13,6 @@ public class JobCategory {
     private Long id;
     private String name;
     private String description;
-    private Double baseSalary;
     private Boolean isDeleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

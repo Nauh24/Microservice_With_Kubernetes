@@ -28,6 +28,7 @@ public class CustomerContract {
     // Thông tin công việc
     private Integer numberOfWorkers;  // Số lượng nhân công cần
     private Double totalAmount;      // Tổng giá trị hợp đồng
+    private Double totalPaid;        // Tổng số tiền đã thanh toán
     private String address;          // Địa chỉ làm việc
     private String description;      // Mô tả công việc
 

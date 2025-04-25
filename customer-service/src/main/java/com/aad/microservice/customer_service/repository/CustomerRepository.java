@@ -17,7 +17,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     Boolean existsByPhoneNumberAndIsDeletedFalseAndIdNot(String phoneNumber, Long id);
 
     // Search methods
-    List<Customer> findByFullNameContainingIgnoreCaseAndIsDeletedFalse(String fullName);
+    List<Customer> findByFullnameContainingIgnoreCaseAndIsDeletedFalse(String fullname);
     List<Customer> findByPhoneNumberContainingAndIsDeletedFalse(String phoneNumber);
-    List<Customer> findByFullNameContainingIgnoreCaseAndPhoneNumberContainingAndIsDeletedFalse(String fullName, String phoneNumber);
+    List<Customer> findByFullnameContainingIgnoreCaseAndPhoneNumberContainingAndIsDeletedFalse(String fullname, String phoneNumber);
 }

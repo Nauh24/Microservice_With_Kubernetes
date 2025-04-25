@@ -20,6 +20,7 @@ public class CustomerContract {
     private LocalDate signedDate;
     private Integer numberOfWorkers;
     private Double totalAmount;
+    private Double totalPaid;
     private String address;
     private String description;
     private Long jobCategoryId;

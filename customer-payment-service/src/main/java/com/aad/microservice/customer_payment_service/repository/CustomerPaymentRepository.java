@@ -11,12 +11,12 @@ import java.util.Optional;
 public interface CustomerPaymentRepository extends JpaRepository<CustomerPayment, Long> {
     List<CustomerPayment> findByIsDeletedFalse();
     Optional<CustomerPayment> findByIdAndIsDeletedFalse(Long id);
-    
+
     List<CustomerPayment> findByCustomerIdAndIsDeletedFalse(Long customerId);
-    List<CustomerPayment> findByContractIdAndIsDeletedFalse(Long contractId);
-    
-    @Query("SELECT SUM(p.amount) FROM CustomerPayment p WHERE p.contractId = :contractId AND p.isDeleted = false")
+    List<CustomerPayment> findByCustomerContractIdAndIsDeletedFalse(Long customerContractId);
+
+    @Query("SELECT SUM(p.paymentAmount) FROM CustomerPayment p WHERE p.customerContractId = :contractId AND p.isDeleted = false")
     Double getTotalPaidAmountByContractId(@Param("contractId") Long contractId);
-    
+
     Boolean existsByPaymentCodeAndIsDeletedFalse(String paymentCode);
 }

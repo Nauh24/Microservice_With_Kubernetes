@@ -13,7 +13,6 @@ import com.aad.microservice.customer_payment_service.repository.CustomerPaymentR
 import com.aad.microservice.customer_payment_service.service.CustomerPaymentService;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,14 +37,14 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
     public CustomerPayment createPayment(CustomerPayment payment) {
         // Kiểm tra hợp đồng có tồn tại không
         try {
-            Boolean contractExists = contractClient.checkContractExists(payment.getContractId());
+            Boolean contractExists = contractClient.checkContractExists(payment.getCustomerContractId());
             if (!contractExists) {
                 throw new AppException(ErrorCode.ContractNotFound_Exception, "Không tìm thấy thông tin hợp đồng");
             }
 
             // Kiểm tra hợp đồng có đang hoạt động hoặc chờ xử lý không
-            CustomerContract contract = contractClient.getContractById(payment.getContractId());
-            System.out.println("Creating payment for contract ID: " + payment.getContractId() +
+            CustomerContract contract = contractClient.getContractById(payment.getCustomerContractId());
+            System.out.println("Creating payment for contract ID: " + payment.getCustomerContractId() +
                               ", Status: " + contract.getStatus() +
                               " (ACTIVE=" + ContractStatusConstants.ACTIVE +
                               ", PENDING=" + ContractStatusConstants.PENDING + ")");
@@ -66,13 +65,13 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
             }
 
             // Kiểm tra số tiền thanh toán
-            if (payment.getAmount() == null || payment.getAmount() <= 0) {
+            if (payment.getPaymentAmount() == null || payment.getPaymentAmount() <= 0) {
                 throw new AppException(ErrorCode.InvalidAmount_Exception, "Số tiền thanh toán phải lớn hơn 0");
             }
 
             // Kiểm tra số tiền thanh toán không vượt quá số tiền còn lại của hợp đồng
-            Double remainingAmount = getRemainingAmountByContractId(payment.getContractId());
-            if (payment.getAmount() > remainingAmount) {
+            Double remainingAmount = getRemainingAmountByContractId(payment.getCustomerContractId());
+            if (payment.getPaymentAmount() > remainingAmount) {
                 throw new AppException(ErrorCode.InvalidAmount_Exception,
                         "Số tiền thanh toán không được vượt quá số tiền còn lại của hợp đồng");
             }
@@ -90,7 +89,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
         payment.setCreatedAt(LocalDateTime.now());
         payment.setUpdatedAt(LocalDateTime.now());
         payment.setIsDeleted(false);
-        payment.setPaymentDate(LocalDate.now());
+        payment.setPaymentDate(LocalDateTime.now());
 
         // Lưu thanh toán
         CustomerPayment savedPayment = paymentRepository.save(payment);
@@ -125,13 +124,13 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
 
     @Override
     public List<CustomerPayment> getPaymentsByContractId(Long contractId) {
-        return paymentRepository.findByContractIdAndIsDeletedFalse(contractId);
+        return paymentRepository.findByCustomerContractIdAndIsDeletedFalse(contractId);
     }
 
     @Override
-    public List<Customer> searchCustomers(String fullName, String phoneNumber) {
+    public List<Customer> searchCustomers(String fullname, String phoneNumber) {
         try {
-            return customerClient.searchCustomers(fullName, phoneNumber);
+            return customerClient.searchCustomers(fullname, phoneNumber);
         } catch (Exception e) {
             System.out.println("Không thể kết nối đến customer-service: " + e.getMessage());
             return new ArrayList<>();
@@ -153,7 +152,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
 
             // Lấy thông tin khách hàng
             Customer customer = customerClient.getCustomerById(customerId);
-            System.out.println("Retrieved customer: " + customer.getFullName());
+            System.out.println("Retrieved customer: " + customer.getFullname());
 
             // Lấy danh sách hợp đồng của khách hàng
             List<CustomerContract> contracts = contractClient.getContractsByCustomerId(customerId);
@@ -194,7 +193,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
                                 .totalAmount(contract.getTotalAmount())
                                 .totalPaid(totalPaid)
                                 .totalDue(totalDue)
-                                .customerName(customer.getFullName())
+                                .customerName(customer.getFullname())
                                 .customerId(customer.getId())
                                 .status(contract.getStatus())
                                 .build();
@@ -257,7 +256,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
                     .totalAmount(contract.getTotalAmount())
                     .totalPaid(totalPaid)
                     .totalDue(totalDue)
-                    .customerName(customer.getFullName())
+                    .customerName(customer.getFullname())
                     .customerId(customer.getId())
                     .status(contract.getStatus())
                     .build();
