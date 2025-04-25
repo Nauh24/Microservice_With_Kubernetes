@@ -1,0 +1,17 @@
+com\aad\microservice\customer_statistics_service\model\Customer$CustomerBuilder.class
+com\aad\microservice\customer_statistics_service\model\CustomerContract$CustomerContractBuilder.class
+com\aad\microservice\customer_statistics_service\service\CustomerStatisticsService.class
+com\aad\microservice\customer_statistics_service\config\WebConfig.class
+com\aad\microservice\customer_statistics_service\service\impl\CustomerStatisticsServiceImpl.class
+com\aad\microservice\customer_statistics_service\model\CustomerPayment$CustomerPaymentBuilder.class
+com\aad\microservice\customer_statistics_service\client\CustomerPaymentClient.class
+com\aad\microservice\customer_statistics_service\model\Customer.class
+com\aad\microservice\customer_statistics_service\model\CustomerContract.class
+com\aad\microservice\customer_statistics_service\CustomerStatisticsServiceApplication.class
+com\aad\microservice\customer_statistics_service\client\CustomerContractClient.class
+com\aad\microservice\customer_statistics_service\client\CustomerClient.class
+com\aad\microservice\customer_statistics_service\controller\CustomerStatisticsController.class
+com\aad\microservice\customer_statistics_service\model\CustomerRevenue$CustomerRevenueBuilder.class
+com\aad\microservice\customer_statistics_service\model\CustomerRevenue.class
+com\aad\microservice\customer_statistics_service\config\FeignConfig.class
+com\aad\microservice\customer_statistics_service\model\CustomerPayment.class

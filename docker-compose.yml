@@ -141,6 +141,18 @@ services:
     networks:
       - microservice-network
 
+  customer-statistics-service:
+    build: ./customer-statistics-service
+    container_name: customer-statistics-service
+    ports:
+      - "8089:8089"
+    depends_on:
+      - customer-service
+      - customer-contract-service
+      - customer-payment-service
+    networks:
+      - microservice-network
+
   api-gateway:
     build: ./api-gateway
     container_name: api-gateway
@@ -155,6 +167,7 @@ services:
       - SPRING_CLOUD_GATEWAY_ROUTES[5].URI=http://job-service:8086
       - SPRING_CLOUD_GATEWAY_ROUTES[6].URI=http://customer-contract-service:8087
       - SPRING_CLOUD_GATEWAY_ROUTES[7].URI=http://customer-payment-service:8088
+      - SPRING_CLOUD_GATEWAY_ROUTES[8].URI=http://customer-statistics-service:8089
     depends_on:
       - worker-service
       - job-schedule-service
@@ -164,6 +177,7 @@ services:
       - job-service
       - customer-contract-service
       - customer-payment-service
+      - customer-statistics-service
     networks:
       - microservice-network
 

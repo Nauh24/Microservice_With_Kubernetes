@@ -1,0 +1,3 @@
+@echo off
+echo Starting Customer Statistics Service...
+mvn spring-boot:run
