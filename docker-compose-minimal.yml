@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - microservice-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  customer-service:
+    build: ./customer-service
+    container_name: customer-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=1234
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - microservice-network
+
+  job-service:
+    build: ./job-service
+    container_name: job-service
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=1234
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - microservice-network
+
+  customer-contract-service:
+    build: ./customer-contract-service
+    container_name: customer-contract-service
+    ports:
+      - "8087:8087"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=1234
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - microservice-network
+
+  customer-payment-service:
+    build: ./customer-payment-service
+    container_name: customer-payment-service
+    ports:
+      - "8088:8088"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=1234
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - microservice-network
+
+  customer-statistics-service:
+    build: ./customer-statistics-service
+    container_name: customer-statistics-service
+    ports:
+      - "8089:8089"
+    depends_on:
+      - customer-service
+      - customer-contract-service
+      - customer-payment-service
+    networks:
+      - microservice-network
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_CLOUD_GATEWAY_ROUTES[0].URI=http://customer-service:8085
+      - SPRING_CLOUD_GATEWAY_ROUTES[0].PREDICATES[0]=Path=/api/customer/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[1].URI=http://job-service:8086
+      - SPRING_CLOUD_GATEWAY_ROUTES[1].PREDICATES[0]=Path=/api/job/**,/api/job-category/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[2].URI=http://customer-contract-service:8087
+      - SPRING_CLOUD_GATEWAY_ROUTES[2].PREDICATES[0]=Path=/api/customer-contract/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[3].URI=http://customer-payment-service:8088
+      - SPRING_CLOUD_GATEWAY_ROUTES[3].PREDICATES[0]=Path=/api/customer-payment/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[4].URI=http://customer-statistics-service:8089
+      - SPRING_CLOUD_GATEWAY_ROUTES[4].PREDICATES[0]=Path=/api/customer-statistics/**
+    depends_on:
+      - customer-service
+      - job-service
+      - customer-contract-service
+      - customer-payment-service
+      - customer-statistics-service
+    networks:
+      - microservice-network
+
+networks:
+  microservice-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
