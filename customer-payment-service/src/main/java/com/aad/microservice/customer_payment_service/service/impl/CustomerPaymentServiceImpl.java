@@ -43,11 +43,20 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
                 throw new AppException(ErrorCode.ContractNotFound_Exception, "Không tìm thấy thông tin hợp đồng");
             }
 
-            // Kiểm tra hợp đồng có đang hoạt động không
+            // Kiểm tra hợp đồng có đang hoạt động hoặc chờ xử lý không
             CustomerContract contract = contractClient.getContractById(payment.getContractId());
-            if (contract.getStatus() != ContractStatusConstants.ACTIVE) {
+            System.out.println("Creating payment for contract ID: " + payment.getContractId() +
+                              ", Status: " + contract.getStatus() +
+                              " (ACTIVE=" + ContractStatusConstants.ACTIVE +
+                              ", PENDING=" + ContractStatusConstants.PENDING + ")");
+
+            boolean isActive = contract.getStatus() == ContractStatusConstants.ACTIVE;
+            boolean isPending = contract.getStatus() == ContractStatusConstants.PENDING;
+            System.out.println("Contract is ACTIVE: " + isActive + ", Contract is PENDING: " + isPending);
+
+            if (!isActive && !isPending) {
                 throw new AppException(ErrorCode.ContractNotActive_Exception,
-                        "Chỉ có thể thanh toán cho hợp đồng đang hoạt động");
+                        "Chỉ có thể thanh toán cho hợp đồng đang hoạt động hoặc chờ xử lý");
             }
 
             // Kiểm tra khách hàng có tồn tại không
@@ -150,11 +159,17 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
             List<CustomerContract> contracts = contractClient.getContractsByCustomerId(customerId);
             System.out.println("Retrieved " + contracts.size() + " contracts for customer");
 
-            // Lọc các hợp đồng đang hoạt động
+            // Lọc các hợp đồng đang hoạt động hoặc chờ xử lý
+            System.out.println("Filtering contracts for ACTIVE (status=1) or PENDING (status=0)");
             List<CustomerContract> activeContracts = contracts.stream()
                     .filter(contract -> {
-                        System.out.println("Contract " + contract.getContractCode() + " status: " + contract.getStatus());
-                        return contract.getStatus() == ContractStatusConstants.ACTIVE;
+                        System.out.println("Contract " + contract.getContractCode() + " status: " + contract.getStatus() +
+                                          " - Is ACTIVE: " + (contract.getStatus() == ContractStatusConstants.ACTIVE) +
+                                          " - Is PENDING: " + (contract.getStatus() == ContractStatusConstants.PENDING));
+                        boolean include = contract.getStatus() == ContractStatusConstants.ACTIVE ||
+                                         contract.getStatus() == ContractStatusConstants.PENDING;
+                        System.out.println("Including contract " + contract.getContractCode() + ": " + include);
+                        return include;
                     })
                     .collect(Collectors.toList());
 
@@ -212,10 +227,19 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
             // Lấy thông tin hợp đồng
             CustomerContract contract = contractClient.getContractById(contractId);
 
-            // Kiểm tra hợp đồng có đang hoạt động không
-            if (contract.getStatus() != ContractStatusConstants.ACTIVE) {
+            // Kiểm tra hợp đồng có đang hoạt động hoặc chờ xử lý không
+            System.out.println("Getting payment info for contract ID: " + contractId +
+                              ", Status: " + contract.getStatus() +
+                              " (ACTIVE=" + ContractStatusConstants.ACTIVE +
+                              ", PENDING=" + ContractStatusConstants.PENDING + ")");
+
+            boolean isActive = contract.getStatus() == ContractStatusConstants.ACTIVE;
+            boolean isPending = contract.getStatus() == ContractStatusConstants.PENDING;
+            System.out.println("Contract is ACTIVE: " + isActive + ", Contract is PENDING: " + isPending);
+
+            if (!isActive && !isPending) {
                 throw new AppException(ErrorCode.ContractNotActive_Exception,
-                        "Chỉ có thể thanh toán cho hợp đồng đang hoạt động");
+                        "Chỉ có thể thanh toán cho hợp đồng đang hoạt động hoặc chờ xử lý");
             }
 
             // Lấy thông tin khách hàng
