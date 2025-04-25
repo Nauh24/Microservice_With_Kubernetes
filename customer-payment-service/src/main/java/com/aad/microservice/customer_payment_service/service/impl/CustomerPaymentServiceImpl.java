@@ -3,7 +3,7 @@ package com.aad.microservice.customer_payment_service.service.impl;
 import com.aad.microservice.customer_payment_service.client.CustomerClient;
 import com.aad.microservice.customer_payment_service.client.CustomerContractClient;
 import com.aad.microservice.customer_payment_service.constant.ContractStatusConstants;
-import com.aad.microservice.customer_payment_service.model.ContractPaymentInfo;
+
 import com.aad.microservice.customer_payment_service.exception.AppException;
 import com.aad.microservice.customer_payment_service.exception.ErrorCode;
 import com.aad.microservice.customer_payment_service.model.Customer;
@@ -138,7 +138,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
     }
 
     @Override
-    public List<ContractPaymentInfo> getActiveContractsByCustomerId(Long customerId) {
+    public List<CustomerContract> getActiveContractsByCustomerId(Long customerId) {
         try {
             System.out.println("Fetching active contracts for customer ID: " + customerId);
 
@@ -174,33 +174,24 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
 
             System.out.println("Found " + activeContracts.size() + " active contracts");
 
-            // Chuyển đổi sang model
-            List<ContractPaymentInfo> result = activeContracts.stream()
+            // Cập nhật thông tin thanh toán cho mỗi hợp đồng
+            List<CustomerContract> result = activeContracts.stream()
                     .map(contract -> {
                         Double totalPaid = getTotalPaidAmountByContractId(contract.getId());
-                        Double totalDue = contract.getTotalAmount() - totalPaid;
 
                         System.out.println("Contract " + contract.getContractCode() +
                                 " - Total: " + contract.getTotalAmount() +
-                                ", Paid: " + totalPaid +
-                                ", Due: " + totalDue);
+                                ", Paid: " + totalPaid);
 
-                        return ContractPaymentInfo.builder()
-                                .contractId(contract.getId())
-                                .contractCode(contract.getContractCode())
-                                .startingDate(contract.getStartingDate())
-                                .endingDate(contract.getEndingDate())
-                                .totalAmount(contract.getTotalAmount())
-                                .totalPaid(totalPaid)
-                                .totalDue(totalDue)
-                                .customerName(customer.getFullname())
-                                .customerId(customer.getId())
-                                .status(contract.getStatus())
-                                .build();
+                        // Cập nhật thông tin thanh toán
+                        contract.setTotalPaid(totalPaid);
+                        contract.setCustomerName(getCustomerDisplayName(customer));
+
+                        return contract;
                     })
                     .collect(Collectors.toList());
 
-            System.out.println("Returning " + result.size() + " contract payment info objects");
+            System.out.println("Returning " + result.size() + " contract objects");
             return result;
 
         } catch (Exception e) {
@@ -214,8 +205,25 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
         }
     }
 
+    /**
+     * Trả về tên hiển thị của khách hàng
+     * Nếu fullname null thì sử dụng companyName, nếu cả hai đều null thì trả về "Không xác định"
+     */
+    private String getCustomerDisplayName(Customer customer) {
+        if (customer == null) {
+            return "Không xác định";
+        }
+        if (customer.getFullname() != null && !customer.getFullname().isEmpty()) {
+            return customer.getFullname();
+        }
+        if (customer.getCompanyName() != null && !customer.getCompanyName().isEmpty()) {
+            return customer.getCompanyName();
+        }
+        return "Không xác định";
+    }
+
     @Override
-    public ContractPaymentInfo getContractPaymentInfo(Long contractId) {
+    public CustomerContract getContractPaymentInfo(Long contractId) {
         try {
             // Kiểm tra hợp đồng có tồn tại không
             Boolean contractExists = contractClient.checkContractExists(contractId);
@@ -246,20 +254,12 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
 
             // Tính toán số tiền đã thanh toán và còn lại
             Double totalPaid = getTotalPaidAmountByContractId(contractId);
-            Double totalDue = contract.getTotalAmount() - totalPaid;
 
-            return ContractPaymentInfo.builder()
-                    .contractId(contract.getId())
-                    .contractCode(contract.getContractCode())
-                    .startingDate(contract.getStartingDate())
-                    .endingDate(contract.getEndingDate())
-                    .totalAmount(contract.getTotalAmount())
-                    .totalPaid(totalPaid)
-                    .totalDue(totalDue)
-                    .customerName(customer.getFullname())
-                    .customerId(customer.getId())
-                    .status(contract.getStatus())
-                    .build();
+            // Cập nhật thông tin thanh toán
+            contract.setTotalPaid(totalPaid);
+            contract.setCustomerName(getCustomerDisplayName(customer));
+
+            return contract;
 
         } catch (Exception e) {
             if (e instanceof AppException) {

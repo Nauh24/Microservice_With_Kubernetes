@@ -32,7 +32,6 @@ sequenceDiagram
         participant CustomerClient
         participant ContractClient as CustomerContractClient
         participant PaymentModel as CustomerPayment
-        participant ContractPaymentInfo
     end
 
     box customer-service
@@ -190,22 +189,20 @@ sequenceDiagram
         PaymentRepo-->>PaymentServiceImpl: Double (totalPaid)
         deactivate PaymentRepo
 
-        PaymentServiceImpl->>ContractPaymentInfo: Tạo đối tượng ContractPaymentInfo
-        activate ContractPaymentInfo
-        ContractPaymentInfo-->>PaymentServiceImpl: ContractPaymentInfo
-        deactivate ContractPaymentInfo
+        PaymentServiceImpl->>PaymentServiceImpl: Cập nhật totalPaid cho CustomerContract
+        PaymentServiceImpl->>PaymentServiceImpl: Tính toán totalDue = totalAmount - totalPaid
     end
 
-    PaymentServiceImpl-->>PaymentService: List<ContractPaymentInfo>
+    PaymentServiceImpl-->>PaymentService: List<CustomerContract>
     deactivate PaymentServiceImpl
 
-    PaymentService-->>PaymentController: List<ContractPaymentInfo>
+    PaymentService-->>PaymentController: List<CustomerContract>
     deactivate PaymentService
 
-    PaymentController-->>ApiGateway: ResponseEntity<List<ContractPaymentInfo>>
+    PaymentController-->>ApiGateway: ResponseEntity<List<CustomerContract>>
     deactivate PaymentController
 
-    ApiGateway-->>Frontend: ResponseEntity<List<ContractPaymentInfo>>
+    ApiGateway-->>Frontend: ResponseEntity<List<CustomerContract>>
     deactivate ApiGateway
 
     Frontend->>Frontend: Hiển thị danh sách hợp đồng của khách hàng
@@ -398,22 +395,20 @@ sequenceDiagram
         CustomerClient-->>PaymentServiceImpl: Customer
         deactivate CustomerClient
 
-        PaymentServiceImpl->>ContractPaymentInfo: Tạo đối tượng ContractPaymentInfo
-        activate ContractPaymentInfo
-        ContractPaymentInfo-->>PaymentServiceImpl: ContractPaymentInfo
-        deactivate ContractPaymentInfo
+        PaymentServiceImpl->>PaymentServiceImpl: Cập nhật totalPaid và customerName cho CustomerContract
+        PaymentServiceImpl->>PaymentServiceImpl: Tính toán totalDue = totalAmount - totalPaid
     end
 
-    PaymentServiceImpl-->>PaymentService: List<ContractPaymentInfo>
+    PaymentServiceImpl-->>PaymentService: List<CustomerContract>
     deactivate PaymentServiceImpl
 
-    PaymentService-->>PaymentController: List<ContractPaymentInfo>
+    PaymentService-->>PaymentController: List<CustomerContract>
     deactivate PaymentService
 
-    PaymentController-->>ApiGateway: ResponseEntity<List<ContractPaymentInfo>>
+    PaymentController-->>ApiGateway: ResponseEntity<List<CustomerContract>>
     deactivate PaymentController
 
-    ApiGateway-->>Frontend: ResponseEntity<List<ContractPaymentInfo>>
+    ApiGateway-->>Frontend: ResponseEntity<List<CustomerContract>>
     deactivate ApiGateway
 
     Frontend->>Frontend: Cập nhật danh sách hợp đồng
@@ -436,7 +431,6 @@ sequenceDiagram
 - **CustomerClient**: Feign client gọi đến customer-service, cung cấp các phương thức như getCustomerById, checkCustomerExists, getAllCustomers, searchCustomers.
 - **CustomerContractClient**: Feign client gọi đến customer-contract-service, cung cấp các phương thức như getContractById, checkContractExists, getAllContracts, getContractsByCustomerId, getContractsByStatus.
 - **CustomerPayment**: Entity chứa thông tin thanh toán với các thuộc tính như id, paymentCode, paymentDate, paymentMethod, paymentAmount, note, customerContractId, customerId, isDeleted, createdAt, updatedAt.
-- **ContractPaymentInfo**: DTO chứa thông tin thanh toán của hợp đồng, bao gồm contractId, contractCode, startingDate, endingDate, totalAmount, totalPaid, totalDue, customerName, customerId, status.
 
 ### 4. customer-service
 - **CustomerController**: Controller xử lý các request liên quan đến khách hàng, cung cấp các endpoint như getCustomerById, createCustomer, getAllCustomers, updateCustomer, deleteCustomer, checkCustomerExists, searchCustomers.
@@ -450,7 +444,7 @@ sequenceDiagram
 - **CustomerContractService**: Interface định nghĩa các phương thức xử lý logic nghiệp vụ liên quan đến hợp đồng.
 - **CustomerContractServiceImpl**: Lớp triển khai CustomerContractService, thực hiện các phương thức xử lý logic nghiệp vụ.
 - **CustomerContractRepository**: Interface truy cập dữ liệu hợp đồng, cung cấp các phương thức như findByIdAndIsDeletedFalse, findByIsDeletedFalse, findByCustomerIdAndIsDeletedFalse, findByStatusAndIsDeletedFalse.
-- **CustomerContract**: Entity chứa thông tin hợp đồng với các thuộc tính như id, contractCode, startingDate, endingDate, signedDate, numberOfWorkers, totalAmount, address, description, jobCategoryId, customerId, status, isDeleted, createdAt, updatedAt.
+- **CustomerContract**: Entity chứa thông tin hợp đồng với các thuộc tính như id, contractCode, startingDate, endingDate, signedDate, numberOfWorkers, totalAmount, totalPaid, address, description, jobCategoryId, customerId, customerName, status, isDeleted, createdAt, updatedAt. Ngoài ra còn có phương thức getTotalDue() để tính toán số tiền còn lại phải thanh toán (totalAmount - totalPaid).
 
 ## Giải thích chi tiết luồng hoạt động
 
@@ -487,7 +481,7 @@ sequenceDiagram
   - Lấy danh sách hợp đồng của khách hàng thông qua CustomerContractClient
   - Lọc hợp đồng đang hoạt động hoặc chờ xử lý
   - Tính toán số tiền đã thanh toán và còn lại cho mỗi hợp đồng
-  - Tạo danh sách đối tượng ContractPaymentInfo
+  - Cập nhật thông tin totalPaid, customerName và tính toán totalDue cho mỗi CustomerContract
 - Danh sách hợp đồng được trả về qua các lớp trung gian, thông qua ApiGateway đến Frontend
 - Frontend hiển thị danh sách hợp đồng của khách hàng
 

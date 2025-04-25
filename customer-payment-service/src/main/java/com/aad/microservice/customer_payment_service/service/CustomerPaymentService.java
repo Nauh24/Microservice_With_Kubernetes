@@ -1,7 +1,7 @@
 package com.aad.microservice.customer_payment_service.service;
 
-import com.aad.microservice.customer_payment_service.model.ContractPaymentInfo;
 import com.aad.microservice.customer_payment_service.model.Customer;
+import com.aad.microservice.customer_payment_service.model.CustomerContract;
 import com.aad.microservice.customer_payment_service.model.CustomerPayment;
 
 import java.util.List;
@@ -14,8 +14,8 @@ public interface CustomerPaymentService {
     List<CustomerPayment> getPaymentsByContractId(Long contractId);
 
     List<Customer> searchCustomers(String fullname, String phoneNumber);
-    List<ContractPaymentInfo> getActiveContractsByCustomerId(Long customerId);
-    ContractPaymentInfo getContractPaymentInfo(Long contractId);
+    List<CustomerContract> getActiveContractsByCustomerId(Long customerId);
+    CustomerContract getContractPaymentInfo(Long contractId);
     Double getTotalPaidAmountByContractId(Long contractId);
     Double getRemainingAmountByContractId(Long contractId);
 }

@@ -1,7 +1,7 @@
 package com.aad.microservice.customer_payment_service.controller;
 
-import com.aad.microservice.customer_payment_service.model.ContractPaymentInfo;
 import com.aad.microservice.customer_payment_service.model.Customer;
+import com.aad.microservice.customer_payment_service.model.CustomerContract;
 import com.aad.microservice.customer_payment_service.model.CustomerPayment;
 import com.aad.microservice.customer_payment_service.service.CustomerPaymentService;
 import org.springframework.http.ResponseEntity;
@@ -57,12 +57,12 @@ public class CustomerPaymentController {
     }
 
     @GetMapping("/customer/{customerId}/active-contracts")
-    public ResponseEntity<List<ContractPaymentInfo>> getActiveContractsByCustomerId(@PathVariable Long customerId) {
+    public ResponseEntity<List<CustomerContract>> getActiveContractsByCustomerId(@PathVariable Long customerId) {
         return ResponseEntity.ok(paymentService.getActiveContractsByCustomerId(customerId));
     }
 
     @GetMapping("/contract/{contractId}/payment-info")
-    public ResponseEntity<ContractPaymentInfo> getContractPaymentInfo(@PathVariable Long contractId) {
+    public ResponseEntity<CustomerContract> getContractPaymentInfo(@PathVariable Long contractId) {
         return ResponseEntity.ok(paymentService.getContractPaymentInfo(contractId));
     }
 
