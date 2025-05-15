@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 public class Customer {
     private Long id;
-    private String fullname;
+    private String fullName;
     private String companyName;
     private String phoneNumber;
     private String email;

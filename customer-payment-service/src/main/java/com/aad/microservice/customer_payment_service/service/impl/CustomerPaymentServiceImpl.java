@@ -152,7 +152,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
 
             // Lấy thông tin khách hàng
             Customer customer = customerClient.getCustomerById(customerId);
-            System.out.println("Retrieved customer: " + customer.getFullname());
+            System.out.println("Retrieved customer: " + customer.getFullName());
 
             // Lấy danh sách hợp đồng của khách hàng
             List<CustomerContract> contracts = contractClient.getContractsByCustomerId(customerId);
@@ -213,8 +213,8 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
         if (customer == null) {
             return "Không xác định";
         }
-        if (customer.getFullname() != null && !customer.getFullname().isEmpty()) {
-            return customer.getFullname();
+        if (customer.getFullName() != null && !customer.getFullName().isEmpty()) {
+            return customer.getFullName();
         }
         if (customer.getCompanyName() != null && !customer.getCompanyName().isEmpty()) {
             return customer.getCompanyName();

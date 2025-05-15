@@ -84,7 +84,7 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         Customer existingCustomer = existedCustomer.get();
-        existingCustomer.setFullname(customer.getFullname());
+        existingCustomer.setFullName(customer.getFullName());
         existingCustomer.setCompanyName(customer.getCompanyName());
         existingCustomer.setPhoneNumber(customer.getPhoneNumber());
         existingCustomer.setEmail(customer.getEmail());
@@ -126,15 +126,15 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<Customer> searchCustomers(String fullname, String phoneNumber) {
+    public List<Customer> searchCustomers(String fullName, String phoneNumber) {
         // Nếu cả hai tham số đều có giá trị
-        if (fullname != null && !fullname.isEmpty() && phoneNumber != null && !phoneNumber.isEmpty()) {
-            return customerRepository.findByFullnameContainingIgnoreCaseAndPhoneNumberContainingAndIsDeletedFalse(fullname, phoneNumber);
+        if (fullName != null && !fullName.isEmpty() && phoneNumber != null && !phoneNumber.isEmpty()) {
+            return customerRepository.findByFullNameContainingIgnoreCaseAndPhoneNumberContainingAndIsDeletedFalse(fullName, phoneNumber);
         }
 
-        // Nếu chỉ có fullname
-        if (fullname != null && !fullname.isEmpty()) {
-            return customerRepository.findByFullnameContainingIgnoreCaseAndIsDeletedFalse(fullname);
+        // Nếu chỉ có fullName
+        if (fullName != null && !fullName.isEmpty()) {
+            return customerRepository.findByFullNameContainingIgnoreCaseAndIsDeletedFalse(fullName);
         }
 
         // Nếu chỉ có phoneNumber

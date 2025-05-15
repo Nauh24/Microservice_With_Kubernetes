@@ -60,7 +60,7 @@ public class CustomerStatisticsServiceImpl implements CustomerStatisticsService 
         for (Customer customer : customers) {
             CustomerRevenue revenue = new CustomerRevenue();
             revenue.setId(customer.getId());
-            revenue.setFullname(customer.getFullname());
+            revenue.setFullName(customer.getFullName());
             revenue.setCompanyName(customer.getCompanyName());
             revenue.setPhoneNumber(customer.getPhoneNumber());
             revenue.setEmail(customer.getEmail());
