@@ -1,13 +1,14 @@
-D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\model\ContractStatus.java
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\service\CustomerContractService.java
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\constant\ContractStatusConstants.java
-D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\service\ICustomerContractService.java
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\controller\CustomerContractController.java
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\client\JobCategoryClient.java
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\repository\CustomerContractRepository.java
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\exception\ErrorCode.java
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\service\impl\CustomerContractServiceImpl.java
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\client\CustomerClient.java
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\model\CustomerContract.java
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\exception\GlobalExceptionHandler.java
-D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\service\CustomerContractServiceImpl.java
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\model\JobCategory.java
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\exception\AppException.java
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\model\Customer.java
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\customer-contract-service\src\main\java\com\aad\microservice\customer_contract_service\CustomerContractServiceApplication.java

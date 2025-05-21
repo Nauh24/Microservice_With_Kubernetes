@@ -31,6 +31,11 @@ services:
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=1234
       - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - SPRING_DEVTOOLS_LIVERELOAD_ENABLED=true
+    volumes:
+      - ./customer-service/src:/app/src
+      - ./customer-service/target:/app/target
     depends_on:
       postgres:
         condition: service_healthy
@@ -47,6 +52,11 @@ services:
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=1234
       - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - SPRING_DEVTOOLS_LIVERELOAD_ENABLED=true
+    volumes:
+      - ./job-service/src:/app/src
+      - ./job-service/target:/app/target
     depends_on:
       postgres:
         condition: service_healthy
@@ -63,6 +73,11 @@ services:
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=1234
       - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - SPRING_DEVTOOLS_LIVERELOAD_ENABLED=true
+    volumes:
+      - ./customer-contract-service/src:/app/src
+      - ./customer-contract-service/target:/app/target
     depends_on:
       postgres:
         condition: service_healthy
@@ -83,6 +98,11 @@ services:
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=1234
       - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - SPRING_DEVTOOLS_LIVERELOAD_ENABLED=true
+    volumes:
+      - ./customer-payment-service/src:/app/src
+      - ./customer-payment-service/target:/app/target
     depends_on:
       postgres:
         condition: service_healthy
@@ -100,6 +120,11 @@ services:
       - "8089:8089"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - SPRING_DEVTOOLS_LIVERELOAD_ENABLED=true
+    volumes:
+      - ./customer-statistics-service/src:/app/src
+      - ./customer-statistics-service/target:/app/target
     depends_on:
       - customer-service
       - customer-contract-service
@@ -124,6 +149,11 @@ services:
       - SPRING_CLOUD_GATEWAY_ROUTES[3].PREDICATES[0]=Path=/api/customer-payment/**
       - SPRING_CLOUD_GATEWAY_ROUTES[4].URI=http://customer-statistics-service:8089
       - SPRING_CLOUD_GATEWAY_ROUTES[4].PREDICATES[0]=Path=/api/customer-statistics/**
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - SPRING_DEVTOOLS_LIVERELOAD_ENABLED=true
+    volumes:
+      - ./api-gateway/src:/app/src
+      - ./api-gateway/target:/app/target
     depends_on:
       - customer-service
       - job-service
@@ -138,7 +168,13 @@ services:
     build: ./microservice_fe
     container_name: frontend
     ports:
-      - "3000:80"
+      - "3000:3000"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./microservice_fe:/app
+      - /app/node_modules
     depends_on:
       - api-gateway
     networks:
