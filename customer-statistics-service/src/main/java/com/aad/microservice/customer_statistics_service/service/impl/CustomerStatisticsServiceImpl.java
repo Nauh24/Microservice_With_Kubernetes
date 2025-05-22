@@ -34,27 +34,47 @@ public class CustomerStatisticsServiceImpl implements CustomerStatisticsService 
     @Override
     public List<CustomerRevenue> getCustomerRevenueStatistics(LocalDate startDate, LocalDate endDate) {
         try {
+            // Validate input dates
+            if (startDate == null || endDate == null) {
+                throw new IllegalArgumentException("Ngày bắt đầu và ngày kết thúc không được để trống");
+            }
+
+            if (startDate.isAfter(endDate)) {
+                throw new IllegalArgumentException("Ngày bắt đầu không thể sau ngày kết thúc");
+            }
+
             // Lấy danh sách tất cả khách hàng
-            List<Customer> customers = customerClient.getAllCustomers();
+            List<Customer> customers;
+            try {
+                customers = customerClient.getAllCustomers();
+                System.out.println("Đã lấy " + customers.size() + " khách hàng từ customer-service");
+            } catch (Exception e) {
+                System.err.println("Lỗi khi lấy danh sách khách hàng: " + e.getMessage());
+                e.printStackTrace();
+                throw new RuntimeException("Không thể kết nối đến customer-service: " + e.getMessage());
+            }
 
             // Lấy danh sách tất cả hợp đồng trong khoảng thời gian
             List<CustomerContract> contracts;
             try {
                 contracts = contractClient.getContractsByDateRange(startDate, endDate);
+                System.out.println("Đã lấy " + contracts.size() + " hợp đồng từ customer-contract-service");
             } catch (Exception e) {
                 System.err.println("Lỗi khi lấy danh sách hợp đồng: " + e.getMessage());
                 e.printStackTrace();
                 contracts = new ArrayList<>();
+                System.out.println("Tiếp tục với danh sách hợp đồng trống");
             }
 
             // Lấy danh sách tất cả hóa đơn
             List<CustomerPayment> allPayments;
             try {
                 allPayments = paymentClient.getAllPayments();
+                System.out.println("Đã lấy " + allPayments.size() + " hóa đơn từ customer-payment-service");
             } catch (Exception e) {
                 System.err.println("Lỗi khi lấy danh sách hóa đơn: " + e.getMessage());
                 e.printStackTrace();
-                allPayments = new ArrayList<>();
+                throw new RuntimeException("Không thể kết nối đến customer-payment-service: " + e.getMessage());
             }
 
             // Lọc hóa đơn trong khoảng thời gian
@@ -67,6 +87,9 @@ public class CustomerStatisticsServiceImpl implements CustomerStatisticsService 
                                !paymentDate.isAfter(endDate);
                     })
                     .collect(Collectors.toList());
+
+            System.out.println("Đã lọc " + payments.size() + " hóa đơn trong khoảng thời gian từ " +
+                              startDate + " đến " + endDate);
 
             // Tạo map để lưu thông tin thống kê theo khách hàng
             Map<Long, CustomerRevenue> customerRevenueMap = new HashMap<>();
@@ -92,7 +115,7 @@ public class CustomerStatisticsServiceImpl implements CustomerStatisticsService 
             // Tính số lượng hợp đồng cho mỗi khách hàng
             for (CustomerContract contract : contracts) {
                 Long customerId = contract.getCustomerId();
-                if (customerRevenueMap.containsKey(customerId)) {
+                if (customerId != null && customerRevenueMap.containsKey(customerId)) {
                     CustomerRevenue revenue = customerRevenueMap.get(customerId);
                     revenue.setContractCount(revenue.getContractCount() + 1);
                 }
@@ -102,35 +125,52 @@ public class CustomerStatisticsServiceImpl implements CustomerStatisticsService 
             for (CustomerPayment payment : payments) {
                 Long customerId = payment.getCustomerId();
                 Double paymentAmount = payment.getPaymentAmount();
-                if (customerRevenueMap.containsKey(customerId) && paymentAmount != null) {
+                if (customerId != null && customerRevenueMap.containsKey(customerId) && paymentAmount != null) {
                     CustomerRevenue revenue = customerRevenueMap.get(customerId);
                     revenue.setTotalRevenue(revenue.getTotalRevenue() + paymentAmount);
                 }
             }
 
             // Chuyển map thành list và lọc những khách hàng có doanh thu > 0
-            return customerRevenueMap.values().stream()
+            List<CustomerRevenue> result = customerRevenueMap.values().stream()
                     .filter(revenue -> revenue.getTotalRevenue() > 0)
                     .sorted((r1, r2) -> r2.getTotalRevenue().compareTo(r1.getTotalRevenue())) // Sắp xếp giảm dần theo doanh thu
                     .collect(Collectors.toList());
+
+            System.out.println("Trả về " + result.size() + " khách hàng có doanh thu > 0");
+            return result;
         } catch (Exception e) {
             System.err.println("Lỗi khi lấy thống kê doanh thu: " + e.getMessage());
             e.printStackTrace();
-            return new ArrayList<>();
+            throw new RuntimeException("Lỗi khi tính toán thống kê doanh thu: " + e.getMessage());
         }
     }
 
     @Override
     public List<CustomerPayment> getCustomerInvoices(Long customerId, LocalDate startDate, LocalDate endDate) {
         try {
+            // Validate input parameters
+            if (customerId == null) {
+                throw new IllegalArgumentException("ID khách hàng không được để trống");
+            }
+
+            if (startDate == null || endDate == null) {
+                throw new IllegalArgumentException("Ngày bắt đầu và ngày kết thúc không được để trống");
+            }
+
+            if (startDate.isAfter(endDate)) {
+                throw new IllegalArgumentException("Ngày bắt đầu không thể sau ngày kết thúc");
+            }
+
             // Lấy danh sách hóa đơn của khách hàng
             List<CustomerPayment> customerPayments;
             try {
                 customerPayments = paymentClient.getPaymentsByCustomerId(customerId);
+                System.out.println("Đã lấy " + customerPayments.size() + " hóa đơn của khách hàng ID: " + customerId);
             } catch (Exception e) {
                 System.err.println("Lỗi khi lấy danh sách hóa đơn của khách hàng: " + e.getMessage());
                 e.printStackTrace();
-                return new ArrayList<>();
+                throw new RuntimeException("Không thể kết nối đến customer-payment-service: " + e.getMessage());
             }
 
             // Lọc hóa đơn trong khoảng thời gian
@@ -144,6 +184,9 @@ public class CustomerStatisticsServiceImpl implements CustomerStatisticsService 
                     })
                     .collect(Collectors.toList());
 
+            System.out.println("Đã lọc " + filteredPayments.size() + " hóa đơn trong khoảng thời gian từ " +
+                              startDate + " đến " + endDate);
+
             // Lấy thông tin mã hợp đồng cho mỗi hóa đơn
             for (CustomerPayment payment : filteredPayments) {
                 if (payment.getCustomerContractId() != null) {
@@ -155,16 +198,25 @@ public class CustomerStatisticsServiceImpl implements CustomerStatisticsService 
                     } catch (Exception e) {
                         // Xử lý trường hợp không tìm thấy hợp đồng
                         System.err.println("Không thể lấy thông tin hợp đồng ID: " + payment.getCustomerContractId() + " - " + e.getMessage());
-                        e.printStackTrace();
+                        // Không throw exception ở đây, chỉ log lỗi và tiếp tục
+                        payment.setContractCode("Không xác định");
                     }
                 }
             }
+
+            // Sắp xếp hóa đơn theo ngày thanh toán giảm dần (mới nhất lên đầu)
+            filteredPayments.sort((p1, p2) -> {
+                if (p1.getPaymentDate() == null && p2.getPaymentDate() == null) return 0;
+                if (p1.getPaymentDate() == null) return 1;
+                if (p2.getPaymentDate() == null) return -1;
+                return p2.getPaymentDate().compareTo(p1.getPaymentDate());
+            });
 
             return filteredPayments;
         } catch (Exception e) {
             System.err.println("Lỗi khi lấy danh sách hóa đơn: " + e.getMessage());
             e.printStackTrace();
-            return new ArrayList<>();
+            throw new RuntimeException("Lỗi khi lấy danh sách hóa đơn: " + e.getMessage());
         }
     }
 }
