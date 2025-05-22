@@ -30,21 +30,33 @@ public class CustomerStatisticsController {
     }
 
     @GetMapping("/revenue")
-    public ResponseEntity<List<CustomerRevenue>> getCustomerRevenueStatistics(
+    public ResponseEntity<?> getCustomerRevenueStatistics(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-        List<CustomerRevenue> statistics = customerStatisticsService.getCustomerRevenueStatistics(startDate, endDate);
-        return ResponseEntity.ok(statistics);
+        try {
+            List<CustomerRevenue> statistics = customerStatisticsService.getCustomerRevenueStatistics(startDate, endDate);
+            return ResponseEntity.ok(statistics);
+        } catch (Exception e) {
+            System.err.println("Lỗi khi lấy thống kê doanh thu: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Không thể tải dữ liệu thống kê khách hàng. Vui lòng thử lại sau."));
+        }
     }
 
     @GetMapping("/customer/{customerId}/invoices")
-    public ResponseEntity<List<CustomerPayment>> getCustomerInvoices(
+    public ResponseEntity<?> getCustomerInvoices(
             @PathVariable Long customerId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-        List<CustomerPayment> invoices = customerStatisticsService.getCustomerInvoices(customerId, startDate, endDate);
-        return ResponseEntity.ok(invoices);
+        try {
+            List<CustomerPayment> invoices = customerStatisticsService.getCustomerInvoices(customerId, startDate, endDate);
+            return ResponseEntity.ok(invoices);
+        } catch (Exception e) {
+            System.err.println("Lỗi khi lấy danh sách hóa đơn: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Không thể tải dữ liệu hóa đơn. Vui lòng thử lại sau."));
+        }
     }
 }

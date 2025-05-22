@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -13,5 +12,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CustomerRevenue extends Customer {
     private Integer contractCount;
+
     private Double totalRevenue;
 }

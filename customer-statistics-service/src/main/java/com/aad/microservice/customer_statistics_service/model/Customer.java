@@ -1,5 +1,6 @@
 package com.aad.microservice.customer_statistics_service.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +14,9 @@ import java.time.LocalDateTime;
 @Builder
 public class Customer {
     private Long id;
+
     private String fullName;
+
     private String companyName;
     private String phoneNumber;
     private String email;
