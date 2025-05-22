@@ -1,10 +1,10 @@
+com\aad\microservice\customer_contract_service\model\Customer.class
+com\aad\microservice\customer_contract_service\exception\GlobalExceptionHandler.class
 com\aad\microservice\customer_contract_service\model\CustomerContract$CustomerContractBuilder.class
 com\aad\microservice\customer_contract_service\client\CustomerClient.class
 com\aad\microservice\customer_contract_service\constant\ContractStatusConstants.class
-com\aad\microservice\customer_contract_service\model\Customer.class
 com\aad\microservice\customer_contract_service\exception\ErrorCode.class
 com\aad\microservice\customer_contract_service\controller\CustomerContractController.class
-com\aad\microservice\customer_contract_service\exception\GlobalExceptionHandler.class
 com\aad\microservice\customer_contract_service\exception\AppException.class
 com\aad\microservice\customer_contract_service\model\CustomerContract.class
 com\aad\microservice\customer_contract_service\repository\CustomerContractRepository.class

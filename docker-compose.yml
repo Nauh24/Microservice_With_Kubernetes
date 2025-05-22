@@ -186,14 +186,27 @@ services:
       - "8083:8083"
     environment:
       - SPRING_CLOUD_GATEWAY_ROUTES[0].URI=http://worker-service:8080
+      - SPRING_CLOUD_GATEWAY_ROUTES[0].PREDICATES[0]=Path=/api/worker/**
       - SPRING_CLOUD_GATEWAY_ROUTES[1].URI=http://job-schedule-service:8081
+      - SPRING_CLOUD_GATEWAY_ROUTES[1].PREDICATES[0]=Path=/api/job-schedule/**
       - SPRING_CLOUD_GATEWAY_ROUTES[2].URI=http://register-service:8082
+      - SPRING_CLOUD_GATEWAY_ROUTES[2].PREDICATES[0]=Path=/api/register/**
       - SPRING_CLOUD_GATEWAY_ROUTES[3].URI=http://worker-contract-service:8084
+      - SPRING_CLOUD_GATEWAY_ROUTES[3].PREDICATES[0]=Path=/api/worker-contract/**
       - SPRING_CLOUD_GATEWAY_ROUTES[4].URI=http://customer-service:8085
+      - SPRING_CLOUD_GATEWAY_ROUTES[4].PREDICATES[0]=Path=/api/customer/**
       - SPRING_CLOUD_GATEWAY_ROUTES[5].URI=http://job-service:8086
+      - SPRING_CLOUD_GATEWAY_ROUTES[5].PREDICATES[0]=Path=/api/job/**,/api/job-category/**
       - SPRING_CLOUD_GATEWAY_ROUTES[6].URI=http://customer-contract-service:8087
+      - SPRING_CLOUD_GATEWAY_ROUTES[6].PREDICATES[0]=Path=/api/customer-contract/**
       - SPRING_CLOUD_GATEWAY_ROUTES[7].URI=http://customer-payment-service:8088
+      - SPRING_CLOUD_GATEWAY_ROUTES[7].PREDICATES[0]=Path=/api/customer-payment/**
       - SPRING_CLOUD_GATEWAY_ROUTES[8].URI=http://customer-statistics-service:8089
+      - SPRING_CLOUD_GATEWAY_ROUTES[8].PREDICATES[0]=Path=/api/customer-statistics/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[9].URI=http://customer-contract-service:8087
+      - SPRING_CLOUD_GATEWAY_ROUTES[9].PREDICATES[0]=Path=/api/job-detail/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[10].URI=http://customer-contract-service:8087
+      - SPRING_CLOUD_GATEWAY_ROUTES[10].PREDICATES[0]=Path=/api/work-shift/**
       - SPRING_DEVTOOLS_RESTART_ENABLED=true
       - SPRING_DEVTOOLS_LIVERELOAD_ENABLED=true
     volumes:

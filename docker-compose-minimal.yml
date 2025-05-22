@@ -108,6 +108,10 @@ services:
       - SPRING_CLOUD_GATEWAY_ROUTES[3].PREDICATES[0]=Path=/api/customer-payment/**
       - SPRING_CLOUD_GATEWAY_ROUTES[4].URI=http://customer-statistics-service:8089
       - SPRING_CLOUD_GATEWAY_ROUTES[4].PREDICATES[0]=Path=/api/customer-statistics/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[5].URI=http://customer-contract-service:8087
+      - SPRING_CLOUD_GATEWAY_ROUTES[5].PREDICATES[0]=Path=/api/job-detail/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[6].URI=http://customer-contract-service:8087
+      - SPRING_CLOUD_GATEWAY_ROUTES[6].PREDICATES[0]=Path=/api/work-shift/**
     depends_on:
       - customer-service
       - job-service

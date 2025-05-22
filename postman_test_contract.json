@@ -1,0 +1,32 @@
+{
+  "customerId": 1,
+  "startingDate": "2023-11-01",
+  "endingDate": "2023-12-31",
+  "address": "123 Đường ABC, Quận 1, TP.HCM",
+  "description": "Hợp đồng cung cấp nhân công",
+  "totalAmount": 10000000,
+  "status": 0,
+  "jobDetails": [
+    {
+      "jobCategoryId": 1,
+      "startDate": "2023-11-01",
+      "endDate": "2023-12-31",
+      "workLocation": "Tầng 1, Tòa nhà ABC",
+      "description": "Công việc vệ sinh",
+      "workShifts": [
+        {
+          "startTime": "08:00",
+          "endTime": "12:00",
+          "numberOfWorkers": 2,
+          "workingDays": "1,2,3,4,5"
+        },
+        {
+          "startTime": "13:00",
+          "endTime": "17:00",
+          "numberOfWorkers": 3,
+          "workingDays": "1,2,3,4,5"
+        }
+      ]
+    }
+  ]
+}

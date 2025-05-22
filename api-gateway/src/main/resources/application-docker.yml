@@ -49,6 +49,14 @@ spring:
           uri: http://customer-statistics-service:8089
           predicates:
             - Path=/api/customer-statistics/**
+        - id: job-detail-service
+          uri: http://customer-contract-service:8087
+          predicates:
+            - Path=/api/job-detail/**
+        - id: work-shift-service
+          uri: http://customer-contract-service:8087
+          predicates:
+            - Path=/api/work-shift/**
       globalcors:
         corsConfigurations:
           '[/**]':

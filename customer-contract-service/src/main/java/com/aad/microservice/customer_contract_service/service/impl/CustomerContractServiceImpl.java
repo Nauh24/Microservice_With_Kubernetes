@@ -6,6 +6,8 @@ import com.aad.microservice.customer_contract_service.constant.ContractStatusCon
 import com.aad.microservice.customer_contract_service.exception.AppException;
 import com.aad.microservice.customer_contract_service.exception.ErrorCode;
 import com.aad.microservice.customer_contract_service.model.CustomerContract;
+import com.aad.microservice.customer_contract_service.model.JobDetail;
+import com.aad.microservice.customer_contract_service.model.WorkShift;
 import com.aad.microservice.customer_contract_service.repository.CustomerContractRepository;
 import com.aad.microservice.customer_contract_service.service.CustomerContractService;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CustomerContractServiceImpl implements CustomerContractService {
@@ -44,21 +47,6 @@ public class CustomerContractServiceImpl implements CustomerContractService {
             // Trong môi trường production, nên sử dụng logger thay vì System.out.println
         }
 
-        // Kiểm tra loại công việc có tồn tại không
-        if (contract.getJobCategoryId() != null) {
-            try {
-                Boolean jobCategoryExists = jobCategoryClient.checkJobCategoryExists(contract.getJobCategoryId());
-                if (!jobCategoryExists) {
-                    throw new AppException(ErrorCode.JobCategoryNotFound_Exception, "Không tìm thấy thông tin loại công việc");
-                }
-            } catch (Exception e) {
-                // Nếu không thể kết nối đến job-service, vẫn cho phép tạo hợp đồng
-                // nhưng ghi log lỗi
-                System.out.println("Không thể kết nối đến job-service: " + e.getMessage());
-                // Trong môi trường production, nên sử dụng logger thay vì System.out.println
-            }
-        }
-
         // Kiểm tra ngày bắt đầu và kết thúc
         if (contract.getStartingDate() == null || contract.getEndingDate() == null) {
             throw new AppException(ErrorCode.NotAllowCreate_Exception, "Ngày bắt đầu và kết thúc không được để trống");
@@ -77,9 +65,53 @@ public class CustomerContractServiceImpl implements CustomerContractService {
         contract.setUpdatedAt(LocalDateTime.now());
         contract.setIsDeleted(false);
 
+        // Nếu không có totalPaid, thiết lập mặc định là 0
+        if (contract.getTotalPaid() == null) {
+            contract.setTotalPaid(0.0);
+        }
+
         // Nếu không có status, thiết lập mặc định là PENDING
         if (contract.getStatus() == null) {
             contract.setStatus(ContractStatusConstants.PENDING);
+        }
+
+        // Xử lý JobDetails nếu có
+        if (contract.getJobDetails() != null && !contract.getJobDetails().isEmpty()) {
+            for (JobDetail jobDetail : contract.getJobDetails()) {
+                // Kiểm tra loại công việc có tồn tại không
+                if (jobDetail.getJobCategoryId() != null) {
+                    try {
+                        Boolean jobCategoryExists = jobCategoryClient.checkJobCategoryExists(jobDetail.getJobCategoryId());
+                        if (!jobCategoryExists) {
+                            throw new AppException(ErrorCode.JobCategoryNotFound_Exception, "Không tìm thấy thông tin loại công việc");
+                        }
+                    } catch (Exception e) {
+                        // Nếu không thể kết nối đến job-service, vẫn cho phép tạo hợp đồng
+                        // nhưng ghi log lỗi
+                        System.out.println("Không thể kết nối đến job-service: " + e.getMessage());
+                    }
+                }
+
+                // Kiểm tra xem có ít nhất một ca làm việc không
+                if (jobDetail.getWorkShifts() == null || jobDetail.getWorkShifts().isEmpty()) {
+                    throw new AppException(ErrorCode.InvalidInput_Exception, "Mỗi loại công việc phải có ít nhất một ca làm việc");
+                }
+
+                // Thiết lập các giá trị mặc định cho JobDetail
+                jobDetail.setCreatedAt(LocalDateTime.now());
+                jobDetail.setUpdatedAt(LocalDateTime.now());
+                jobDetail.setIsDeleted(false);
+                jobDetail.setContract(contract);
+
+                // Xử lý WorkShifts nếu có
+                for (WorkShift workShift : jobDetail.getWorkShifts()) {
+                    // Thiết lập các giá trị mặc định cho WorkShift
+                    workShift.setCreatedAt(LocalDateTime.now());
+                    workShift.setUpdatedAt(LocalDateTime.now());
+                    workShift.setIsDeleted(false);
+                    workShift.setJobDetail(jobDetail);
+                }
+            }
         }
 
         // Lưu hợp đồng
@@ -139,10 +171,6 @@ public class CustomerContractServiceImpl implements CustomerContractService {
             currentContract.setEndingDate(contract.getEndingDate());
         }
 
-        if (contract.getNumberOfWorkers() != null) {
-            currentContract.setNumberOfWorkers(contract.getNumberOfWorkers());
-        }
-
         if (contract.getTotalAmount() != null) {
             currentContract.setTotalAmount(contract.getTotalAmount());
         }
@@ -151,23 +179,57 @@ public class CustomerContractServiceImpl implements CustomerContractService {
             currentContract.setAddress(contract.getAddress());
         }
 
-        if (contract.getJobCategoryId() != null) {
-            try {
-                Boolean jobCategoryExists = jobCategoryClient.checkJobCategoryExists(contract.getJobCategoryId());
-                if (!jobCategoryExists) {
-                    throw new AppException(ErrorCode.JobCategoryNotFound_Exception, "Không tìm thấy thông tin loại công việc");
-                }
-                currentContract.setJobCategoryId(contract.getJobCategoryId());
-            } catch (Exception e) {
-                // Nếu không thể kết nối đến job-service, vẫn cho phép cập nhật hợp đồng
-                // nhưng ghi log lỗi
-                System.out.println("Không thể kết nối đến job-service: " + e.getMessage());
-                currentContract.setJobCategoryId(contract.getJobCategoryId());
-            }
-        }
-
         if (contract.getStatus() != null) {
             currentContract.setStatus(contract.getStatus());
+        }
+
+        // Xử lý JobDetails nếu có
+        if (contract.getJobDetails() != null && !contract.getJobDetails().isEmpty()) {
+            // Xóa các JobDetail cũ
+            currentContract.getJobDetails().clear();
+
+            // Thêm các JobDetail mới
+            for (JobDetail jobDetail : contract.getJobDetails()) {
+                // Kiểm tra loại công việc có tồn tại không
+                if (jobDetail.getJobCategoryId() != null) {
+                    try {
+                        Boolean jobCategoryExists = jobCategoryClient.checkJobCategoryExists(jobDetail.getJobCategoryId());
+                        if (!jobCategoryExists) {
+                            throw new AppException(ErrorCode.JobCategoryNotFound_Exception, "Không tìm thấy thông tin loại công việc");
+                        }
+                    } catch (Exception e) {
+                        // Nếu không thể kết nối đến job-service, vẫn cho phép cập nhật hợp đồng
+                        // nhưng ghi log lỗi
+                        System.out.println("Không thể kết nối đến job-service: " + e.getMessage());
+                    }
+                }
+
+                // Kiểm tra xem có ít nhất một ca làm việc không
+                if (jobDetail.getWorkShifts() == null || jobDetail.getWorkShifts().isEmpty()) {
+                    throw new AppException(ErrorCode.InvalidInput_Exception, "Mỗi loại công việc phải có ít nhất một ca làm việc");
+                }
+
+                // Thiết lập các giá trị mặc định cho JobDetail
+                if (jobDetail.getCreatedAt() == null) {
+                    jobDetail.setCreatedAt(LocalDateTime.now());
+                }
+                jobDetail.setUpdatedAt(LocalDateTime.now());
+                jobDetail.setIsDeleted(false);
+                jobDetail.setContract(currentContract);
+
+                // Xử lý WorkShifts
+                for (WorkShift workShift : jobDetail.getWorkShifts()) {
+                    // Thiết lập các giá trị mặc định cho WorkShift
+                    if (workShift.getCreatedAt() == null) {
+                        workShift.setCreatedAt(LocalDateTime.now());
+                    }
+                    workShift.setUpdatedAt(LocalDateTime.now());
+                    workShift.setIsDeleted(false);
+                    workShift.setJobDetail(jobDetail);
+                }
+
+                currentContract.addJobDetail(jobDetail);
+            }
         }
 
         currentContract.setUpdatedAt(LocalDateTime.now());
@@ -228,7 +290,14 @@ public class CustomerContractServiceImpl implements CustomerContractService {
 
     @Override
     public List<CustomerContract> getContractsByJobCategoryId(Long jobCategoryId) {
-        return contractRepository.findByJobCategoryIdAndIsDeletedFalse(jobCategoryId);
+        // Find all contracts
+        List<CustomerContract> allContracts = contractRepository.findByIsDeletedFalse();
+
+        // Filter contracts that have job details with the specified job category ID
+        return allContracts.stream()
+            .filter(contract -> contract.getJobDetails().stream()
+                .anyMatch(jobDetail -> jobDetail.getJobCategoryId().equals(jobCategoryId) && !jobDetail.getIsDeleted()))
+            .collect(Collectors.toList());
     }
 
     @Override
