@@ -115,15 +115,7 @@ public class CustomerContractServiceImpl implements CustomerContractService {
         }
 
         // Lưu hợp đồng
-        CustomerContract savedContract = contractRepository.save(contract);
-
-        // Tạo mã hợp đồng
-        if (savedContract.getContractCode() == null || savedContract.getContractCode().isEmpty()) {
-            savedContract.setContractCode("CC" + savedContract.getId());
-            savedContract = contractRepository.save(savedContract);
-        }
-
-        return savedContract;
+        return contractRepository.save(contract);
     }
 
     @Override

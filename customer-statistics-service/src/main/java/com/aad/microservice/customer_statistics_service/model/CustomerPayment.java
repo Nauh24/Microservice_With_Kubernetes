@@ -13,13 +13,11 @@ import java.time.LocalDateTime;
 @Builder
 public class CustomerPayment {
     private Long id;
-    private String paymentCode;
     private LocalDateTime paymentDate;
     private Integer paymentMethod;
     private Double paymentAmount;
     private String note;
     private Long customerContractId;
-    private String contractCode;
     private Long customerId;
     private Boolean isDeleted;
     private LocalDateTime updatedAt;

@@ -92,15 +92,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
         payment.setPaymentDate(LocalDateTime.now());
 
         // Lưu thanh toán
-        CustomerPayment savedPayment = paymentRepository.save(payment);
-
-        // Tạo mã thanh toán
-        if (savedPayment.getPaymentCode() == null || savedPayment.getPaymentCode().isEmpty()) {
-            savedPayment.setPaymentCode("PAY" + savedPayment.getId());
-            savedPayment = paymentRepository.save(savedPayment);
-        }
-
-        return savedPayment;
+        return paymentRepository.save(payment);
     }
 
     @Override
@@ -162,12 +154,12 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
             System.out.println("Filtering contracts for ACTIVE (status=1) or PENDING (status=0)");
             List<CustomerContract> activeContracts = contracts.stream()
                     .filter(contract -> {
-                        System.out.println("Contract " + contract.getContractCode() + " status: " + contract.getStatus() +
+                        System.out.println("Contract ID " + contract.getId() + " status: " + contract.getStatus() +
                                           " - Is ACTIVE: " + (contract.getStatus() == ContractStatusConstants.ACTIVE) +
                                           " - Is PENDING: " + (contract.getStatus() == ContractStatusConstants.PENDING));
                         boolean include = contract.getStatus() == ContractStatusConstants.ACTIVE ||
                                          contract.getStatus() == ContractStatusConstants.PENDING;
-                        System.out.println("Including contract " + contract.getContractCode() + ": " + include);
+                        System.out.println("Including contract ID " + contract.getId() + ": " + include);
                         return include;
                     })
                     .collect(Collectors.toList());
@@ -179,7 +171,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
                     .map(contract -> {
                         Double totalPaid = getTotalPaidAmountByContractId(contract.getId());
 
-                        System.out.println("Contract " + contract.getContractCode() +
+                        System.out.println("Contract ID " + contract.getId() +
                                 " - Total: " + contract.getTotalAmount() +
                                 ", Paid: " + totalPaid);
 

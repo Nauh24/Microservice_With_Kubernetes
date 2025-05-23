@@ -2,6 +2,7 @@ package com.aad.microservice.customer_statistics_service.controller;
 
 import com.aad.microservice.customer_statistics_service.model.CustomerRevenue;
 import com.aad.microservice.customer_statistics_service.model.CustomerPayment;
+import com.aad.microservice.customer_statistics_service.model.TimeBasedRevenue;
 import com.aad.microservice.customer_statistics_service.service.CustomerStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -118,6 +119,150 @@ public class CustomerStatisticsController {
             e.printStackTrace();
             Map<String, String> error = new HashMap<>();
             error.put("error", "Không thể tải dữ liệu hóa đơn: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    @GetMapping("/revenue/daily")
+    public ResponseEntity<?> getDailyRevenueStatistics(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        try {
+            // Validate input dates
+            if (startDate == null || endDate == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Ngày bắt đầu và ngày kết thúc không được để trống");
+                return ResponseEntity.badRequest().body(error);
+            }
+
+            if (startDate.isAfter(endDate)) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Ngày bắt đầu không thể sau ngày kết thúc");
+                return ResponseEntity.badRequest().body(error);
+            }
+
+            System.out.println("Đang lấy thống kê doanh thu theo ngày từ " + startDate + " đến " + endDate);
+            List<TimeBasedRevenue> statistics = customerStatisticsService.getDailyRevenueStatistics(startDate, endDate);
+            System.out.println("Đã lấy " + statistics.size() + " kết quả thống kê theo ngày");
+            return ResponseEntity.ok(statistics);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Lỗi tham số đầu vào: " + e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        } catch (Exception e) {
+            System.err.println("Lỗi khi lấy thống kê doanh thu theo ngày: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Không thể tải dữ liệu thống kê doanh thu theo ngày: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    @GetMapping("/revenue/weekly")
+    public ResponseEntity<?> getWeeklyRevenueStatistics(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        try {
+            // Validate input dates
+            if (startDate == null || endDate == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Ngày bắt đầu và ngày kết thúc không được để trống");
+                return ResponseEntity.badRequest().body(error);
+            }
+
+            if (startDate.isAfter(endDate)) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Ngày bắt đầu không thể sau ngày kết thúc");
+                return ResponseEntity.badRequest().body(error);
+            }
+
+            System.out.println("Đang lấy thống kê doanh thu theo tuần từ " + startDate + " đến " + endDate);
+            List<TimeBasedRevenue> statistics = customerStatisticsService.getWeeklyRevenueStatistics(startDate, endDate);
+            System.out.println("Đã lấy " + statistics.size() + " kết quả thống kê theo tuần");
+            return ResponseEntity.ok(statistics);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Lỗi tham số đầu vào: " + e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        } catch (Exception e) {
+            System.err.println("Lỗi khi lấy thống kê doanh thu theo tuần: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Không thể tải dữ liệu thống kê doanh thu theo tuần: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    @GetMapping("/revenue/monthly")
+    public ResponseEntity<?> getMonthlyRevenueStatistics(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        try {
+            // Validate input dates
+            if (startDate == null || endDate == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Ngày bắt đầu và ngày kết thúc không được để trống");
+                return ResponseEntity.badRequest().body(error);
+            }
+
+            if (startDate.isAfter(endDate)) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Ngày bắt đầu không thể sau ngày kết thúc");
+                return ResponseEntity.badRequest().body(error);
+            }
+
+            System.out.println("Đang lấy thống kê doanh thu theo tháng từ " + startDate + " đến " + endDate);
+            List<TimeBasedRevenue> statistics = customerStatisticsService.getMonthlyRevenueStatistics(startDate, endDate);
+            System.out.println("Đã lấy " + statistics.size() + " kết quả thống kê theo tháng");
+            return ResponseEntity.ok(statistics);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Lỗi tham số đầu vào: " + e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        } catch (Exception e) {
+            System.err.println("Lỗi khi lấy thống kê doanh thu theo tháng: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Không thể tải dữ liệu thống kê doanh thu theo tháng: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    @GetMapping("/revenue/yearly")
+    public ResponseEntity<?> getYearlyRevenueStatistics(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        try {
+            // Validate input dates
+            if (startDate == null || endDate == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Ngày bắt đầu và ngày kết thúc không được để trống");
+                return ResponseEntity.badRequest().body(error);
+            }
+
+            if (startDate.isAfter(endDate)) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Ngày bắt đầu không thể sau ngày kết thúc");
+                return ResponseEntity.badRequest().body(error);
+            }
+
+            System.out.println("Đang lấy thống kê doanh thu theo năm từ " + startDate + " đến " + endDate);
+            List<TimeBasedRevenue> statistics = customerStatisticsService.getYearlyRevenueStatistics(startDate, endDate);
+            System.out.println("Đã lấy " + statistics.size() + " kết quả thống kê theo năm");
+            return ResponseEntity.ok(statistics);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Lỗi tham số đầu vào: " + e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        } catch (Exception e) {
+            System.err.println("Lỗi khi lấy thống kê doanh thu theo năm: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Không thể tải dữ liệu thống kê doanh thu theo năm: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }

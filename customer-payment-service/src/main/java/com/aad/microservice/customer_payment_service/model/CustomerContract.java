@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @Builder
 public class CustomerContract {
     private Long id;
-    private String contractCode;     // Mã hợp đồng
     private LocalDate startingDate;  // Ngày bắt đầu
     private LocalDate endingDate;    // Ngày kết thúc
     private LocalDate signedDate;    // Ngày ký hợp đồng

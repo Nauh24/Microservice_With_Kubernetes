@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @Builder
 public class CustomerContract {
     private Long id;
-    private String contractCode;
     private LocalDate startingDate;
     private LocalDate endingDate;
     private LocalDate signedDate;

@@ -18,5 +18,5 @@ public interface CustomerPaymentRepository extends JpaRepository<CustomerPayment
     @Query("SELECT SUM(p.paymentAmount) FROM CustomerPayment p WHERE p.customerContractId = :contractId AND p.isDeleted = false")
     Double getTotalPaidAmountByContractId(@Param("contractId") Long contractId);
 
-    Boolean existsByPaymentCodeAndIsDeletedFalse(String paymentCode);
+
 }

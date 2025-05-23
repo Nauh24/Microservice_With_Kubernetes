@@ -25,23 +25,18 @@ public class CustomerContract {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String contractCode;     // Mã hợp đồng
-
-    // Thông tin thời gian
-    private LocalDate startingDate;  // Ngày bắt đầu
-    private LocalDate endingDate;    // Ngày kết thúc
-    private LocalDate signedDate;    // Ngày ký hợp đồng
+    private LocalDate startingDate;
+    private LocalDate endingDate;
+    private LocalDate signedDate;
 
     // Thông tin công việc
-    private Double totalAmount;      // Tổng giá trị hợp đồng
-    private Double totalPaid;        // Tổng số tiền đã thanh toán
-    private String address;          // Địa chỉ làm việc
-    private String description;      // Mô tả công việc
+    private Double totalAmount;
+    private Double totalPaid;
+    private String address;
+    private String description;
 
-    // Quan hệ với các đối tượng khác
-    private Long customerId;         // ID khách hàng (service-to-service communication)
+    private Long customerId;
 
-    // Relationship with JobDetail
     @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     @Builder.Default
@@ -49,9 +44,9 @@ public class CustomerContract {
 
     // Trạng thái và thông tin hệ thống
     private Integer status;          // Trạng thái hợp đồng (0: Chờ xử lý, 1: Đang hoạt động, 2: Hoàn thành, 3: Đã hủy)
-    private Boolean isDeleted;       // Đánh dấu đã xóa
-    private LocalDateTime createdAt; // Thời gian tạo
-    private LocalDateTime updatedAt; // Thời gian cập nhật
+    private Boolean isDeleted;     
+    private LocalDateTime createdAt; 
+    private LocalDateTime updatedAt; 
 
     /**
      * Add a job detail to this contract
