@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CustomerRevenue extends Customer {
-    // Mark as JsonIgnore to exclude from API responses as per user preference
     @JsonIgnore
     private Integer contractCount;
 

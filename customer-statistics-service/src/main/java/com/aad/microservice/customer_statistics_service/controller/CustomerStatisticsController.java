@@ -17,7 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/customer-statistics")
-@CrossOrigin(origins = "*") // Allow requests from any origin
+@CrossOrigin(origins = "*") 
 public class CustomerStatisticsController {
 
     @Autowired

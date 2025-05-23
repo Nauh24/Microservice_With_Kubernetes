@@ -11,23 +11,9 @@ import java.util.Optional;
  */
 public interface WorkShiftRepository extends JpaRepository<WorkShift, Long> {
     
-    /**
-     * Find all work shifts that are not deleted
-     * @return List of work shifts
-     */
     List<WorkShift> findByIsDeletedFalse();
-    
-    /**
-     * Find a work shift by ID that is not deleted
-     * @param id Work shift ID
-     * @return Optional containing the work shift if found
-     */
+
     Optional<WorkShift> findByIdAndIsDeletedFalse(Long id);
-    
-    /**
-     * Find all work shifts for a job detail that are not deleted
-     * @param jobDetailId Job detail ID
-     * @return List of work shifts
-     */
+
     List<WorkShift> findByJobDetail_IdAndIsDeletedFalse(Long jobDetailId);
 }

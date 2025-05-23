@@ -329,8 +329,6 @@ public class CustomerContractServiceImpl implements CustomerContractService {
         return contractRepository.save(currentContract);
     }
 
-
-
     @Override
     public boolean checkContractExists(Long id) {
         return contractRepository.findByIdAndIsDeletedFalse(id).isPresent();

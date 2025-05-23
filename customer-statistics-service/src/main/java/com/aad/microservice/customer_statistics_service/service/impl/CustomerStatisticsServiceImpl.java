@@ -15,10 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.Month;
-import java.time.Year;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
@@ -197,7 +194,6 @@ public class CustomerStatisticsServiceImpl implements CustomerStatisticsService 
             System.out.println("Đã lọc " + filteredPayments.size() + " hóa đơn trong khoảng thời gian từ " +
                               startDate + " đến " + endDate);
 
-            // Không cần lấy thông tin mã hợp đồng nữa vì đã loại bỏ trường contractCode
 
             // Sắp xếp hóa đơn theo ngày thanh toán giảm dần (mới nhất lên đầu)
             filteredPayments.sort((p1, p2) -> {
@@ -215,13 +211,7 @@ public class CustomerStatisticsServiceImpl implements CustomerStatisticsService 
         }
     }
 
-    /**
-     * Lấy danh sách tất cả hóa đơn trong khoảng thời gian
-     *
-     * @param startDate Ngày bắt đầu
-     * @param endDate Ngày kết thúc
-     * @return Danh sách hóa đơn đã lọc
-     */
+
     private List<CustomerPayment> getAllPaymentsInDateRange(LocalDate startDate, LocalDate endDate) {
         try {
             // Lấy danh sách tất cả hóa đơn

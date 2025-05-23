@@ -18,7 +18,7 @@ public class TimeBasedRevenue {
     // Thời gian (ngày, tuần, tháng, năm)
     private LocalDate date;
     
-    // Nhãn hiển thị (ví dụ: "Tuần 1", "Tháng 5", "Năm 2023")
+    // Nhãn hiển thị
     private String label;
     
     // Tổng doanh thu trong khoảng thời gian
@@ -27,6 +27,5 @@ public class TimeBasedRevenue {
     // Số lượng hóa đơn trong khoảng thời gian
     private Integer invoiceCount;
     
-    // Loại thời gian (daily, weekly, monthly, yearly)
     private String periodType;
 }

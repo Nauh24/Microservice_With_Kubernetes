@@ -17,15 +17,12 @@ public class CustomerPayment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private LocalDateTime paymentDate;  
     private Integer paymentMethod;      
     private Double paymentAmount;      
-    private String note;                
-
+    private String note;
     private Long customerContractId;     
-    private Long customerId;          
-
+    private Long customerId;  
     private Boolean isDeleted;      
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt; 

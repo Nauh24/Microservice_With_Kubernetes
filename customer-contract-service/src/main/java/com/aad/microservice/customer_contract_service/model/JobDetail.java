@@ -26,8 +26,6 @@ public class JobDetail {
     @JsonBackReference
     private CustomerContract contract;
 
-    private Long jobCategoryId;
-
     private LocalDate startDate;
     private LocalDate endDate;
     private String workLocation;
@@ -39,6 +37,8 @@ public class JobDetail {
     private Boolean isDeleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private Long jobCategoryId;
 
     public void addWorkShift(WorkShift workShift) {
         workShifts.add(workShift);

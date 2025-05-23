@@ -21,9 +21,9 @@ public class CustomerContract {
     private Double totalPaid;
     private String address;
     private String description;
+    private Integer status;
     private Long jobCategoryId;
     private Long customerId;
-    private Integer status;
     private Boolean isDeleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
