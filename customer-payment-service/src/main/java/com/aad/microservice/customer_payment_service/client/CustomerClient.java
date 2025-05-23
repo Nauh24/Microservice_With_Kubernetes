@@ -22,6 +22,6 @@ public interface CustomerClient {
 
     @GetMapping("/search")
     List<Customer> searchCustomers(
-            @RequestParam(required = false) String fullname,
+            @RequestParam(required = false) String fullName,
             @RequestParam(required = false) String phoneNumber);
 }

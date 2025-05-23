@@ -120,9 +120,11 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
     @Override
     public List<Customer> searchCustomers(String fullname, String phoneNumber) {
         try {
+            // Đảm bảo tham số được truyền đúng tên (fullName với chữ N viết hoa)
             return customerClient.searchCustomers(fullname, phoneNumber);
         } catch (Exception e) {
             System.out.println("Không thể kết nối đến customer-service: " + e.getMessage());
+            e.printStackTrace(); // In stack trace để dễ debug
             return new ArrayList<>();
         }
     }
