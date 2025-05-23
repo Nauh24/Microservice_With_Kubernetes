@@ -34,6 +34,7 @@ public class CustomerContractServiceImpl implements CustomerContractService {
 
     @Override
     public CustomerContract createContract(CustomerContract contract) {
+
         // Kiểm tra khách hàng có tồn tại không
         try {
             Boolean customerExists = customerClient.checkCustomerExists(contract.getCustomerId());
@@ -41,10 +42,7 @@ public class CustomerContractServiceImpl implements CustomerContractService {
                 throw new AppException(ErrorCode.CustomerNotFound_Exception, "Không tìm thấy thông tin khách hàng");
             }
         } catch (Exception e) {
-            // Nếu không thể kết nối đến customer-service, vẫn cho phép tạo hợp đồng
-            // nhưng ghi log lỗi
             System.out.println("Không thể kết nối đến customer-service: " + e.getMessage());
-            // Trong môi trường production, nên sử dụng logger thay vì System.out.println
         }
 
         // Kiểm tra ngày bắt đầu và kết thúc
@@ -86,8 +84,6 @@ public class CustomerContractServiceImpl implements CustomerContractService {
                             throw new AppException(ErrorCode.JobCategoryNotFound_Exception, "Không tìm thấy thông tin loại công việc");
                         }
                     } catch (Exception e) {
-                        // Nếu không thể kết nối đến job-service, vẫn cho phép tạo hợp đồng
-                        // nhưng ghi log lỗi
                         System.out.println("Không thể kết nối đến job-service: " + e.getMessage());
                     }
                 }
@@ -308,10 +304,7 @@ public class CustomerContractServiceImpl implements CustomerContractService {
                     throw new AppException(ErrorCode.NotAllowUpdate_Exception,
                         "Chỉ có thể kích hoạt hợp đồng đang ở trạng thái chờ xử lý");
                 }
-                if (currentContract.getSignedDate() == null) {
-                    throw new AppException(ErrorCode.NotAllowUpdate_Exception,
-                        "Hợp đồng chưa được ký, không thể kích hoạt");
-                }
+
                 break;
             case ContractStatusConstants.COMPLETED:
                 if (currentContract.getStatus() != ContractStatusConstants.ACTIVE) {
@@ -336,31 +329,7 @@ public class CustomerContractServiceImpl implements CustomerContractService {
         return contractRepository.save(currentContract);
     }
 
-    @Override
-    public CustomerContract signContract(Long id, LocalDate signedDate) {
-        Optional<CustomerContract> contract = contractRepository.findByIdAndIsDeletedFalse(id);
-        if (contract.isEmpty()) {
-            throw new AppException(ErrorCode.NotFound_Exception, "Không tìm thấy thông tin hợp đồng");
-        }
 
-        CustomerContract currentContract = contract.get();
-
-        // Chỉ có thể ký hợp đồng ở trạng thái PENDING
-        if (currentContract.getStatus() != ContractStatusConstants.PENDING) {
-            throw new AppException(ErrorCode.NotAllowUpdate_Exception,
-                "Chỉ có thể ký hợp đồng đang ở trạng thái chờ xử lý");
-        }
-
-        // Ngày ký không được trước ngày hiện tại
-        if (signedDate.isBefore(LocalDate.now())) {
-            throw new AppException(ErrorCode.InvalidDate_Exception, "Ngày ký không được trước ngày hiện tại");
-        }
-
-        currentContract.setSignedDate(signedDate);
-        currentContract.setUpdatedAt(LocalDateTime.now());
-
-        return contractRepository.save(currentContract);
-    }
 
     @Override
     public boolean checkContractExists(Long id) {

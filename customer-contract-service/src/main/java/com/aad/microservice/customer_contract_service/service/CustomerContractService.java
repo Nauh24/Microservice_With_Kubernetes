@@ -18,7 +18,6 @@ public interface CustomerContractService {
     List<CustomerContract> getContractsByJobCategoryId(Long jobCategoryId);
 
     CustomerContract updateContractStatus(Long id, Integer status);
-    CustomerContract signContract(Long id, LocalDate signedDate);
 
     boolean checkContractExists(Long id);
 }

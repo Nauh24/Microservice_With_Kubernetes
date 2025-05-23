@@ -16,7 +16,6 @@ public class CustomerContract {
     private Long id;
     private LocalDate startingDate;  // Ngày bắt đầu
     private LocalDate endingDate;    // Ngày kết thúc
-    private LocalDate signedDate;    // Ngày ký hợp đồng
     private Integer numberOfWorkers; // Số lượng nhân công cần
     private Double totalAmount;      // Tổng giá trị hợp đồng
     private Double totalPaid;        // Tổng số tiền đã thanh toán

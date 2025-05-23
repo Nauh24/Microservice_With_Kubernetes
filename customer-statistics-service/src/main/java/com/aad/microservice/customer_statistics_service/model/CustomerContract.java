@@ -16,7 +16,6 @@ public class CustomerContract {
     private Long id;
     private LocalDate startingDate;
     private LocalDate endingDate;
-    private LocalDate signedDate;
     private Integer numberOfWorkers;
     private Double totalAmount;
     private Double totalPaid;

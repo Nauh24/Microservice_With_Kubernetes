@@ -80,9 +80,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
             if (e instanceof AppException) {
                 throw e;
             }
-            // Nếu không thể kết nối đến các service khác, ghi log lỗi
             System.out.println("Không thể kết nối đến service: " + e.getMessage());
-            // Trong môi trường production, nên sử dụng logger thay vì System.out.println
         }
 
         // Thiết lập các giá trị mặc định
@@ -197,10 +195,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
         }
     }
 
-    /**
-     * Trả về tên hiển thị của khách hàng
-     * Nếu fullname null thì sử dụng companyName, nếu cả hai đều null thì trả về "Không xác định"
-     */
+
     private String getCustomerDisplayName(Customer customer) {
         if (customer == null) {
             return "Không xác định";

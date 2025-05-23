@@ -75,12 +75,7 @@ public class CustomerContractController {
         return ResponseEntity.ok(contractService.updateContractStatus(id, status));
     }
 
-    @PutMapping("/{id}/sign")
-    public ResponseEntity<CustomerContract> signContract(
-            @PathVariable Long id,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate signedDate) {
-        return ResponseEntity.ok(contractService.signContract(id, signedDate));
-    }
+
 
     @GetMapping("/{id}/check-contract-exists")
     public ResponseEntity<Boolean> checkContractExists(@PathVariable Long id) {

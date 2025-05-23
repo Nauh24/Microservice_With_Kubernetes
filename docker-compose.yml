@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
-      POSTGRES_MULTIPLE_DATABASES: workerMSDb,jobScheduleMSDb,registerMSDb,workerContractMSDb,customerMSDb,jobMSDb,customerContractMSDb,customerPaymentMSDb
+      POSTGRES_MULTIPLE_DATABASES: customerMSDb,jobMSDb,customerContractMSDb,customerPaymentMSDb
     ports:
       - "5432:5432"
     volumes:
@@ -20,66 +20,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  worker-service:
-    build: ./worker-service
-    container_name: worker-service
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/workerMSDb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=1234
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - microservice-network
-
-  job-schedule-service:
-    build: ./job-schedule-service
-    container_name: job-schedule-service
-    ports:
-      - "8081:8081"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/jobScheduleMSDb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=1234
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - microservice-network
-
-  register-service:
-    build: ./register-service
-    container_name: register-service
-    ports:
-      - "8082:8082"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/registerMSDb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=1234
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - microservice-network
-
-  worker-contract-service:
-    build: ./worker-contract-service
-    container_name: worker-contract-service
-    ports:
-      - "8084:8084"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/workerContractMSDb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=1234
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - microservice-network
 
   customer-service:
     build: ./customer-service
@@ -185,38 +125,26 @@ services:
     ports:
       - "8083:8083"
     environment:
-      - SPRING_CLOUD_GATEWAY_ROUTES[0].URI=http://worker-service:8080
-      - SPRING_CLOUD_GATEWAY_ROUTES[0].PREDICATES[0]=Path=/api/worker/**
-      - SPRING_CLOUD_GATEWAY_ROUTES[1].URI=http://job-schedule-service:8081
-      - SPRING_CLOUD_GATEWAY_ROUTES[1].PREDICATES[0]=Path=/api/job-schedule/**
-      - SPRING_CLOUD_GATEWAY_ROUTES[2].URI=http://register-service:8082
-      - SPRING_CLOUD_GATEWAY_ROUTES[2].PREDICATES[0]=Path=/api/register/**
-      - SPRING_CLOUD_GATEWAY_ROUTES[3].URI=http://worker-contract-service:8084
-      - SPRING_CLOUD_GATEWAY_ROUTES[3].PREDICATES[0]=Path=/api/worker-contract/**
-      - SPRING_CLOUD_GATEWAY_ROUTES[4].URI=http://customer-service:8085
-      - SPRING_CLOUD_GATEWAY_ROUTES[4].PREDICATES[0]=Path=/api/customer/**
-      - SPRING_CLOUD_GATEWAY_ROUTES[5].URI=http://job-service:8086
-      - SPRING_CLOUD_GATEWAY_ROUTES[5].PREDICATES[0]=Path=/api/job/**,/api/job-category/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[0].URI=http://customer-service:8085
+      - SPRING_CLOUD_GATEWAY_ROUTES[0].PREDICATES[0]=Path=/api/customer/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[1].URI=http://job-service:8086
+      - SPRING_CLOUD_GATEWAY_ROUTES[1].PREDICATES[0]=Path=/api/job/**,/api/job-category/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[2].URI=http://customer-contract-service:8087
+      - SPRING_CLOUD_GATEWAY_ROUTES[2].PREDICATES[0]=Path=/api/customer-contract/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[3].URI=http://customer-payment-service:8088
+      - SPRING_CLOUD_GATEWAY_ROUTES[3].PREDICATES[0]=Path=/api/customer-payment/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[4].URI=http://customer-statistics-service:8089
+      - SPRING_CLOUD_GATEWAY_ROUTES[4].PREDICATES[0]=Path=/api/customer-statistics/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[5].URI=http://customer-contract-service:8087
+      - SPRING_CLOUD_GATEWAY_ROUTES[5].PREDICATES[0]=Path=/api/job-detail/**
       - SPRING_CLOUD_GATEWAY_ROUTES[6].URI=http://customer-contract-service:8087
-      - SPRING_CLOUD_GATEWAY_ROUTES[6].PREDICATES[0]=Path=/api/customer-contract/**
-      - SPRING_CLOUD_GATEWAY_ROUTES[7].URI=http://customer-payment-service:8088
-      - SPRING_CLOUD_GATEWAY_ROUTES[7].PREDICATES[0]=Path=/api/customer-payment/**
-      - SPRING_CLOUD_GATEWAY_ROUTES[8].URI=http://customer-statistics-service:8089
-      - SPRING_CLOUD_GATEWAY_ROUTES[8].PREDICATES[0]=Path=/api/customer-statistics/**
-      - SPRING_CLOUD_GATEWAY_ROUTES[9].URI=http://customer-contract-service:8087
-      - SPRING_CLOUD_GATEWAY_ROUTES[9].PREDICATES[0]=Path=/api/job-detail/**
-      - SPRING_CLOUD_GATEWAY_ROUTES[10].URI=http://customer-contract-service:8087
-      - SPRING_CLOUD_GATEWAY_ROUTES[10].PREDICATES[0]=Path=/api/work-shift/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[6].PREDICATES[0]=Path=/api/work-shift/**
       - SPRING_DEVTOOLS_RESTART_ENABLED=true
       - SPRING_DEVTOOLS_LIVERELOAD_ENABLED=true
     volumes:
       - ./api-gateway/src:/app/src
       - ./api-gateway/target:/app/target
     depends_on:
-      - worker-service
-      - job-schedule-service
-      - register-service
-      - worker-contract-service
       - customer-service
       - job-service
       - customer-contract-service
