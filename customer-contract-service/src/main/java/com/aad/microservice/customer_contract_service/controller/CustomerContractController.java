@@ -82,4 +82,12 @@ public class CustomerContractController {
         boolean exists = contractService.checkContractExists(id);
         return ResponseEntity.ok(exists);
     }
+
+    @GetMapping("/calculate-working-dates")
+    public ResponseEntity<List<String>> calculateWorkingDates(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam String workingDays) {
+        return ResponseEntity.ok(contractService.calculateWorkingDatesForShift(startDate, endDate, workingDays));
+    }
 }

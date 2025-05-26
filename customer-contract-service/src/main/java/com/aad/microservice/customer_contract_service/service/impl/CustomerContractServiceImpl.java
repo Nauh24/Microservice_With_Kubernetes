@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -428,6 +430,11 @@ public class CustomerContractServiceImpl implements CustomerContractService {
         return contractRepository.findByIdAndIsDeletedFalse(id).isPresent();
     }
 
+    @Override
+    public List<String> calculateWorkingDatesForShift(LocalDate startDate, LocalDate endDate, String workingDays) {
+        return calculateWorkingDates(startDate, endDate, workingDays);
+    }
+
     /**
      * Calculate the total amount for a contract based on work shifts
      * @param contract The contract to calculate total amount for
@@ -516,5 +523,54 @@ public class CustomerContractServiceImpl implements CustomerContractService {
         }
 
         return count;
+    }
+
+    /**
+     * Calculate actual working dates between start and end dates based on selected working days
+     * @param startDate Start date
+     * @param endDate End date
+     * @param workingDays Comma-separated string of day numbers (1-7, where 1=Monday, 7=Sunday)
+     * @return List of working dates in DD/MM/YYYY format
+     */
+    private List<String> calculateWorkingDates(LocalDate startDate, LocalDate endDate, String workingDays) {
+        List<String> workingDatesList = new ArrayList<>();
+
+        if (startDate == null || endDate == null || workingDays == null || workingDays.trim().isEmpty()) {
+            return workingDatesList;
+        }
+
+        // Parse working days
+        String[] dayStrings = workingDays.split(",");
+        Set<Integer> workingDaySet = new HashSet<>();
+        for (String dayStr : dayStrings) {
+            try {
+                int day = Integer.parseInt(dayStr.trim());
+                if (day >= 1 && day <= 7) {
+                    workingDaySet.add(day);
+                }
+            } catch (NumberFormatException e) {
+                // Skip invalid day numbers
+            }
+        }
+
+        if (workingDaySet.isEmpty()) {
+            return workingDatesList;
+        }
+
+        LocalDate currentDate = startDate;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        while (!currentDate.isAfter(endDate)) {
+            // Convert Java DayOfWeek to our format (1=Monday, 7=Sunday)
+            int dayOfWeek = currentDate.getDayOfWeek().getValue(); // 1=Monday, 7=Sunday
+
+            if (workingDaySet.contains(dayOfWeek)) {
+                workingDatesList.add(currentDate.format(formatter));
+            }
+
+            currentDate = currentDate.plusDays(1);
+        }
+
+        return workingDatesList;
     }
 }

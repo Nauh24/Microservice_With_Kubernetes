@@ -20,4 +20,6 @@ public interface CustomerContractService {
     CustomerContract updateContractStatus(Long id, Integer status);
 
     boolean checkContractExists(Long id);
+
+    List<String> calculateWorkingDatesForShift(LocalDate startDate, LocalDate endDate, String workingDays);
 }
