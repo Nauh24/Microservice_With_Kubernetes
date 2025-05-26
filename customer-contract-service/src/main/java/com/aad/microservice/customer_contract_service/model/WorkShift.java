@@ -23,9 +23,10 @@ public class WorkShift {
     @JsonBackReference
     private JobDetail jobDetail;
 
-    private String startTime;  
-    private String endTime;  
+    private String startTime;
+    private String endTime;
     private Integer numberOfWorkers;
+    private Double salary;
 
     // 1: Monday, 2: Tuesday, 3: Wednesday, 4: Thursday, 5: Friday, 6: Saturday, 7: Sunday
     @Column(columnDefinition = "TEXT")

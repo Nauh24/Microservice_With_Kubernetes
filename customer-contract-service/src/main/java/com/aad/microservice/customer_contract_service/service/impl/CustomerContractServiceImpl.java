@@ -14,8 +14,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -88,6 +90,23 @@ public class CustomerContractServiceImpl implements CustomerContractService {
                     }
                 }
 
+                // Validate JobDetail fields
+                if (jobDetail.getStartDate() == null) {
+                    throw new AppException(ErrorCode.InvalidInput_Exception, "Ngày bắt đầu công việc không được để trống");
+                }
+
+                if (jobDetail.getEndDate() == null) {
+                    throw new AppException(ErrorCode.InvalidInput_Exception, "Ngày kết thúc công việc không được để trống");
+                }
+
+                if (jobDetail.getStartDate().isAfter(jobDetail.getEndDate())) {
+                    throw new AppException(ErrorCode.InvalidDate_Exception, "Ngày bắt đầu công việc phải trước ngày kết thúc");
+                }
+
+                if (jobDetail.getWorkLocation() == null || jobDetail.getWorkLocation().trim().isEmpty()) {
+                    throw new AppException(ErrorCode.InvalidInput_Exception, "Địa điểm làm việc không được để trống");
+                }
+
                 // Kiểm tra xem có ít nhất một ca làm việc không
                 if (jobDetail.getWorkShifts() == null || jobDetail.getWorkShifts().isEmpty()) {
                     throw new AppException(ErrorCode.InvalidInput_Exception, "Mỗi loại công việc phải có ít nhất một ca làm việc");
@@ -101,6 +120,27 @@ public class CustomerContractServiceImpl implements CustomerContractService {
 
                 // Xử lý WorkShifts nếu có
                 for (WorkShift workShift : jobDetail.getWorkShifts()) {
+                    // Validate work shift fields
+                    if (workShift.getStartTime() == null || workShift.getStartTime().trim().isEmpty()) {
+                        throw new AppException(ErrorCode.InvalidInput_Exception, "Giờ bắt đầu ca làm việc không được để trống");
+                    }
+
+                    if (workShift.getEndTime() == null || workShift.getEndTime().trim().isEmpty()) {
+                        throw new AppException(ErrorCode.InvalidInput_Exception, "Giờ kết thúc ca làm việc không được để trống");
+                    }
+
+                    if (workShift.getNumberOfWorkers() == null || workShift.getNumberOfWorkers() <= 0) {
+                        throw new AppException(ErrorCode.InvalidInput_Exception, "Số lượng nhân công phải lớn hơn 0");
+                    }
+
+                    if (workShift.getSalary() == null || workShift.getSalary() < 0) {
+                        throw new AppException(ErrorCode.InvalidInput_Exception, "Mức lương phải lớn hơn hoặc bằng 0");
+                    }
+
+                    if (workShift.getWorkingDays() == null || workShift.getWorkingDays().trim().isEmpty()) {
+                        throw new AppException(ErrorCode.InvalidInput_Exception, "Ngày làm việc không được để trống");
+                    }
+
                     // Thiết lập các giá trị mặc định cho WorkShift
                     workShift.setCreatedAt(LocalDateTime.now());
                     workShift.setUpdatedAt(LocalDateTime.now());
@@ -108,6 +148,13 @@ public class CustomerContractServiceImpl implements CustomerContractService {
                     workShift.setJobDetail(jobDetail);
                 }
             }
+        }
+
+        // Calculate and validate total amount
+        double calculatedAmount = calculateTotalAmount(contract);
+        if (Math.abs(contract.getTotalAmount() - calculatedAmount) > 0.01) {
+            // Allow small floating point differences, but update to calculated amount
+            contract.setTotalAmount(calculatedAmount);
         }
 
         // Lưu hợp đồng
@@ -192,6 +239,23 @@ public class CustomerContractServiceImpl implements CustomerContractService {
                     }
                 }
 
+                // Validate JobDetail fields
+                if (jobDetail.getStartDate() == null) {
+                    throw new AppException(ErrorCode.InvalidInput_Exception, "Ngày bắt đầu công việc không được để trống");
+                }
+
+                if (jobDetail.getEndDate() == null) {
+                    throw new AppException(ErrorCode.InvalidInput_Exception, "Ngày kết thúc công việc không được để trống");
+                }
+
+                if (jobDetail.getStartDate().isAfter(jobDetail.getEndDate())) {
+                    throw new AppException(ErrorCode.InvalidDate_Exception, "Ngày bắt đầu công việc phải trước ngày kết thúc");
+                }
+
+                if (jobDetail.getWorkLocation() == null || jobDetail.getWorkLocation().trim().isEmpty()) {
+                    throw new AppException(ErrorCode.InvalidInput_Exception, "Địa điểm làm việc không được để trống");
+                }
+
                 // Kiểm tra xem có ít nhất một ca làm việc không
                 if (jobDetail.getWorkShifts() == null || jobDetail.getWorkShifts().isEmpty()) {
                     throw new AppException(ErrorCode.InvalidInput_Exception, "Mỗi loại công việc phải có ít nhất một ca làm việc");
@@ -207,6 +271,27 @@ public class CustomerContractServiceImpl implements CustomerContractService {
 
                 // Xử lý WorkShifts
                 for (WorkShift workShift : jobDetail.getWorkShifts()) {
+                    // Validate work shift fields
+                    if (workShift.getStartTime() == null || workShift.getStartTime().trim().isEmpty()) {
+                        throw new AppException(ErrorCode.InvalidInput_Exception, "Giờ bắt đầu ca làm việc không được để trống");
+                    }
+
+                    if (workShift.getEndTime() == null || workShift.getEndTime().trim().isEmpty()) {
+                        throw new AppException(ErrorCode.InvalidInput_Exception, "Giờ kết thúc ca làm việc không được để trống");
+                    }
+
+                    if (workShift.getNumberOfWorkers() == null || workShift.getNumberOfWorkers() <= 0) {
+                        throw new AppException(ErrorCode.InvalidInput_Exception, "Số lượng nhân công phải lớn hơn 0");
+                    }
+
+                    if (workShift.getSalary() == null || workShift.getSalary() < 0) {
+                        throw new AppException(ErrorCode.InvalidInput_Exception, "Mức lương phải lớn hơn hoặc bằng 0");
+                    }
+
+                    if (workShift.getWorkingDays() == null || workShift.getWorkingDays().trim().isEmpty()) {
+                        throw new AppException(ErrorCode.InvalidInput_Exception, "Ngày làm việc không được để trống");
+                    }
+
                     // Thiết lập các giá trị mặc định cho WorkShift
                     if (workShift.getCreatedAt() == null) {
                         workShift.setCreatedAt(LocalDateTime.now());
@@ -221,6 +306,15 @@ public class CustomerContractServiceImpl implements CustomerContractService {
         }
 
         currentContract.setUpdatedAt(LocalDateTime.now());
+
+        // Calculate and validate total amount if job details were updated
+        if (contract.getJobDetails() != null && !contract.getJobDetails().isEmpty()) {
+            double calculatedAmount = calculateTotalAmount(currentContract);
+            if (Math.abs(currentContract.getTotalAmount() - calculatedAmount) > 0.01) {
+                // Allow small floating point differences, but update to calculated amount
+                currentContract.setTotalAmount(calculatedAmount);
+            }
+        }
 
         return contractRepository.save(currentContract);
     }
@@ -332,5 +426,95 @@ public class CustomerContractServiceImpl implements CustomerContractService {
     @Override
     public boolean checkContractExists(Long id) {
         return contractRepository.findByIdAndIsDeletedFalse(id).isPresent();
+    }
+
+    /**
+     * Calculate the total amount for a contract based on work shifts
+     * @param contract The contract to calculate total amount for
+     * @return The calculated total amount
+     */
+    private double calculateTotalAmount(CustomerContract contract) {
+        if (contract.getJobDetails() == null || contract.getJobDetails().isEmpty()) {
+            return 0.0;
+        }
+
+        double totalAmount = 0.0;
+
+        for (JobDetail jobDetail : contract.getJobDetails()) {
+            if (jobDetail.getWorkShifts() == null || jobDetail.getWorkShifts().isEmpty()) {
+                continue;
+            }
+
+            for (WorkShift workShift : jobDetail.getWorkShifts()) {
+                if (workShift.getSalary() == null || workShift.getNumberOfWorkers() == null ||
+                    workShift.getWorkingDays() == null || workShift.getWorkingDays().trim().isEmpty()) {
+                    continue;
+                }
+
+                // Use job detail dates if available, otherwise use contract dates
+                LocalDate startDate = jobDetail.getStartDate() != null ? jobDetail.getStartDate() : contract.getStartingDate();
+                LocalDate endDate = jobDetail.getEndDate() != null ? jobDetail.getEndDate() : contract.getEndingDate();
+
+                if (startDate == null || endDate == null) {
+                    continue;
+                }
+
+                // Calculate working days count
+                int workingDaysCount = calculateWorkingDaysCount(startDate, endDate, workShift.getWorkingDays());
+
+                // Calculate amount for this shift: salary × numberOfWorkers × workingDaysCount
+                double shiftAmount = workShift.getSalary() * workShift.getNumberOfWorkers() * workingDaysCount;
+                totalAmount += shiftAmount;
+            }
+        }
+
+        return totalAmount;
+    }
+
+    /**
+     * Calculate the number of working days between start and end dates based on selected working days
+     * @param startDate Start date
+     * @param endDate End date
+     * @param workingDays Comma-separated string of day numbers (1-7, where 1=Monday, 7=Sunday)
+     * @return Number of working days
+     */
+    private int calculateWorkingDaysCount(LocalDate startDate, LocalDate endDate, String workingDays) {
+        if (startDate == null || endDate == null || workingDays == null || workingDays.trim().isEmpty()) {
+            return 0;
+        }
+
+        // Parse working days
+        String[] dayStrings = workingDays.split(",");
+        Set<Integer> workingDaySet = new HashSet<>();
+        for (String dayStr : dayStrings) {
+            try {
+                int day = Integer.parseInt(dayStr.trim());
+                if (day >= 1 && day <= 7) {
+                    workingDaySet.add(day);
+                }
+            } catch (NumberFormatException e) {
+                // Skip invalid day numbers
+            }
+        }
+
+        if (workingDaySet.isEmpty()) {
+            return 0;
+        }
+
+        int count = 0;
+        LocalDate currentDate = startDate;
+
+        while (!currentDate.isAfter(endDate)) {
+            // Convert Java DayOfWeek to our format (1=Monday, 7=Sunday)
+            int dayOfWeek = currentDate.getDayOfWeek().getValue(); // 1=Monday, 7=Sunday
+
+            if (workingDaySet.contains(dayOfWeek)) {
+                count++;
+            }
+
+            currentDate = currentDate.plusDays(1);
+        }
+
+        return count;
     }
 }
