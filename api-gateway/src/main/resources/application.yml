@@ -12,31 +12,31 @@ spring:
     gateway:
       routes:
         - id: customer-service
-          uri: http://localhost:8081
+          uri: http://customer-service:8081
           predicates:
             - Path=/api/customer/**
         - id: job-service
-          uri: http://localhost:8082
+          uri: http://job-service:8082
           predicates:
             - Path=/api/job/**,/api/job-category/**
         - id: customer-contract-service
-          uri: http://localhost:8083
+          uri: http://customer-contract-service:8083
           predicates:
             - Path=/api/customer-contract/**
         - id: customer-payment-service
-          uri: http://localhost:8084
+          uri: http://customer-payment-service:8084
           predicates:
             - Path=/api/customer-payment/**
         - id: job-detail-service
-          uri: http://localhost:8083
+          uri: http://customer-contract-service:8083
           predicates:
             - Path=/api/job-detail/**
         - id: work-shift-service
-          uri: http://localhost:8083
+          uri: http://customer-contract-service:8083
           predicates:
             - Path=/api/work-shift/**
         - id: customer-statistics-service
-          uri: http://localhost:8085
+          uri: http://customer-statistics-service:8085
           predicates:
             - Path=/api/customer-statistics/**
       globalcors:

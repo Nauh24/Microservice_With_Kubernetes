@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: customer-service
+          uri: http://customer-service:8081
+          predicates:
+            - Path=/api/customer/**
+        - id: job-service
+          uri: http://job-service:8082
+          predicates:
+            - Path=/api/job/**,/api/job-category/**
+        - id: customer-contract-service
+          uri: http://customer-contract-service:8083
+          predicates:
+            - Path=/api/customer-contract/**
+        - id: customer-payment-service
+          uri: http://customer-payment-service:8084
+          predicates:
+            - Path=/api/customer-payment/**
+        - id: job-detail-service
+          uri: http://customer-contract-service:8083
+          predicates:
+            - Path=/api/job-detail/**
+        - id: work-shift-service
+          uri: http://customer-contract-service:8083
+          predicates:
+            - Path=/api/work-shift/**
+        - id: customer-statistics-service
+          uri: http://customer-statistics-service:8085
+          predicates:
+            - Path=/api/customer-statistics/**
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

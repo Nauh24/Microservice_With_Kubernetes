@@ -1,0 +1,165 @@
+version: '3.8'
+
+services:
+  # Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: microservice_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - microservice-network
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/microservice_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
+    depends_on:
+      - postgres
+    networks:
+      - microservice-network
+
+  # Customer Service
+  customer-service:
+    build:
+      context: ./customer-service
+      dockerfile: Dockerfile
+    container_name: customer-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/microservice_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
+      - SERVER_PORT=8081
+    depends_on:
+      - postgres
+    networks:
+      - microservice-network
+
+  # Job Service
+  job-service:
+    build:
+      context: ./job-service
+      dockerfile: Dockerfile
+    container_name: job-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/microservice_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
+      - SERVER_PORT=8082
+    depends_on:
+      - postgres
+    networks:
+      - microservice-network
+
+  # Customer Contract Service
+  customer-contract-service:
+    build:
+      context: ./customer-contract-service
+      dockerfile: Dockerfile
+    container_name: customer-contract-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/microservice_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
+      - SERVER_PORT=8083
+    depends_on:
+      - postgres
+    networks:
+      - microservice-network
+
+  # Customer Payment Service
+  customer-payment-service:
+    build:
+      context: ./customer-payment-service
+      dockerfile: Dockerfile
+    container_name: customer-payment-service
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/microservice_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
+      - SERVER_PORT=8084
+    depends_on:
+      - postgres
+    networks:
+      - microservice-network
+
+  # Customer Statistics Service
+  customer-statistics-service:
+    build:
+      context: ./customer-statistics-service
+      dockerfile: Dockerfile
+    container_name: customer-statistics-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/microservice_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
+      - SERVER_PORT=8085
+      - APP_CUSTOMER-SERVICE_URL=http://customer-service:8081/api/customer
+      - APP_CUSTOMER-CONTRACT-SERVICE_URL=http://customer-contract-service:8083/api/customer-contract
+      - APP_CUSTOMER-PAYMENT-SERVICE_URL=http://customer-payment-service:8084/api/customer-payment
+    depends_on:
+      - postgres
+    networks:
+      - microservice-network
+
+  # Frontend
+  frontend:
+    build:
+      context: ./microservice_fe
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway
+    networks:
+      - microservice-network
+
+volumes:
+  postgres_data:
+
+networks:
+  microservice-network:
+    driver: bridge

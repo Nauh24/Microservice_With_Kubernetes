@@ -1,0 +1,22 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: customer-statistics-service
+  main:
+    allow-bean-definition-overriding: true
+
+app:
+  customer-service:
+    url: http://customer-service:8081/api/customer
+  customer-contract-service:
+    url: http://customer-contract-service:8083/api/customer-contract
+  customer-payment-service:
+    url: http://customer-payment-service:8084/api/customer-payment
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

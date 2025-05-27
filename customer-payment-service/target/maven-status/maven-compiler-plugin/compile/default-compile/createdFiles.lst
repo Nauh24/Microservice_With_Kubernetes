@@ -1,3 +1,4 @@
+com\aad\microservice\customer_payment_service\config\CorsConfig.class
 com\aad\microservice\customer_payment_service\model\CustomerContract$CustomerContractBuilder.class
 com\aad\microservice\customer_payment_service\service\CustomerPaymentService.class
 com\aad\microservice\customer_payment_service\exception\GlobalExceptionHandler.class

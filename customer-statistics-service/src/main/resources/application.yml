@@ -16,8 +16,8 @@ spring:
 
 app:
   customer-service:
-    url: http://localhost:8081/api/customer
+    url: http://customer-service:8081/api/customer
   customer-contract-service:
-    url: http://localhost:8083/api/customer-contract
+    url: http://customer-contract-service:8083/api/customer-contract
   customer-payment-service:
-    url: http://localhost:8084/api/customer-payment
+    url: http://customer-payment-service:8084/api/customer-payment
