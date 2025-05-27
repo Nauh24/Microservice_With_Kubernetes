@@ -6,6 +6,7 @@ com\aad\microservice\job_service\exception\ErrorCode.class
 com\aad\microservice\job_service\model\JobCategory$JobCategoryBuilder.class
 com\aad\microservice\job_service\service\JobCategoryService.class
 com\aad\microservice\job_service\exception\AppException.class
+com\aad\microservice\job_service\config\CorsConfig.class
 com\aad\microservice\job_service\controller\JobCategoryController.class
 com\aad\microservice\job_service\exception\GlobalExceptionHandler.class
 com\aad\microservice\job_service\service\impl\JobCategoryServiceImpl.class

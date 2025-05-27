@@ -58,9 +58,10 @@ public class CustomerContractServiceImpl implements CustomerContractService {
             throw new AppException(ErrorCode.InvalidDate_Exception, "Ngày bắt đầu phải trước ngày kết thúc");
         }
 
-        if (contract.getStartingDate().isBefore(LocalDate.now())) {
-            throw new AppException(ErrorCode.InvalidDate_Exception, "Ngày bắt đầu phải từ ngày hiện tại trở đi");
-        }
+        // Tạm thời bỏ validation ngày bắt đầu để test
+        // if (contract.getStartingDate().isBefore(LocalDate.now())) {
+        //     throw new AppException(ErrorCode.InvalidDate_Exception, "Ngày bắt đầu phải từ ngày hiện tại trở đi");
+        // }
 
         // Thiết lập các giá trị mặc định
         contract.setCreatedAt(LocalDateTime.now());

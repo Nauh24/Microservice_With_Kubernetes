@@ -10,9 +10,9 @@ import java.util.List;
 @FeignClient(name = "customer-service", url = "${app.customer-service.url}")
 public interface CustomerClient {
 
-    @GetMapping("/api/customer")
+    @GetMapping
     List<Customer> getAllCustomers();
 
-    @GetMapping("/api/customer/{id}")
+    @GetMapping("/{id}")
     Customer getCustomerById(@PathVariable Long id);
 }

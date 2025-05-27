@@ -13,14 +13,14 @@ import java.util.List;
 @FeignClient(name = "customer-contract-service", url = "${app.customer-contract-service.url}")
 public interface CustomerContractClient {
 
-    @GetMapping("/api/customer-contract/date-range")
+    @GetMapping("/date-range")
     List<CustomerContract> getContractsByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate);
 
-    @GetMapping("/api/customer-contract/{id}")
+    @GetMapping("/{id}")
     CustomerContract getContractById(@PathVariable Long id);
 
-    @GetMapping("/api/customer-contract/customer/{customerId}")
+    @GetMapping("/customer/{customerId}")
     List<CustomerContract> getContractsByCustomerId(@PathVariable Long customerId);
 }

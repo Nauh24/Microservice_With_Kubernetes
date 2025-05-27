@@ -22,6 +22,8 @@ com\aad\microservice\customer_contract_service\client\JobCategoryClient.class
 com\aad\microservice\customer_contract_service\model\JobDetail.class
 com\aad\microservice\customer_contract_service\model\CustomerContract.class
 com\aad\microservice\customer_contract_service\repository\CustomerContractRepository.class
+com\aad\microservice\customer_contract_service\config\CorsConfig.class
+com\aad\microservice\customer_contract_service\config\FeignConfig.class
 com\aad\microservice\customer_contract_service\CustomerContractServiceApplication.class
 com\aad\microservice\customer_contract_service\controller\WorkShiftController.class
 com\aad\microservice\customer_contract_service\service\CustomerContractService.class

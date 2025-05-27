@@ -19,6 +19,11 @@ public class CustomerContractController {
         this.contractService = contractService;
     }
 
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        return ResponseEntity.ok("Customer Contract Service is working!");
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<CustomerContract> getContractById(@PathVariable Long id) {
         CustomerContract contract = contractService.getContractById(id);

@@ -13,12 +13,12 @@ import java.util.List;
 @FeignClient(name = "customer-payment-service", url = "${app.customer-payment-service.url}")
 public interface CustomerPaymentClient {
 
-    @GetMapping("/api/customer-payment")
+    @GetMapping
     List<CustomerPayment> getAllPayments();
 
-    @GetMapping("/api/customer-payment/customer/{customerId}")
+    @GetMapping("/customer/{customerId}")
     List<CustomerPayment> getPaymentsByCustomerId(@PathVariable Long customerId);
 
-    @GetMapping("/api/customer-payment/contract/{contractId}")
+    @GetMapping("/contract/{contractId}")
     List<CustomerPayment> getPaymentsByContractId(@PathVariable Long contractId);
 }

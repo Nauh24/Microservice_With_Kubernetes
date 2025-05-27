@@ -1,5 +1,5 @@
 server:
-  port: 8089
+  port: 8085
 
 spring:
   application:
@@ -16,8 +16,8 @@ spring:
 
 app:
   customer-service:
-    url: http://localhost:8085
+    url: http://localhost:8081/api/customer
   customer-contract-service:
-    url: http://localhost:8087
+    url: http://localhost:8083/api/customer-contract
   customer-payment-service:
-    url: http://localhost:8088
+    url: http://localhost:8084/api/customer-payment

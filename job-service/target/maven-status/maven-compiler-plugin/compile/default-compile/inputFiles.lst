@@ -3,6 +3,7 @@ D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\client\JobCategoryClient.java
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\repository\JobCategoryRepository.java
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\service\impl\JobCategoryServiceImpl.java
+D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\config\CorsConfig.java
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\exception\AppException.java
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\exception\ErrorCode.java
 D:\HeThongCongTyQuanLyNhanCong\Microservice_With_Kubernetes\job-service\src\main\java\com\aad\microservice\job_service\exception\GlobalExceptionHandler.java

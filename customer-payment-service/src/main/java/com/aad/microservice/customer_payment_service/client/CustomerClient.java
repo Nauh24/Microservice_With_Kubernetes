@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "customer-service", url = "${customer.service.url:http://localhost:8085/api/customer}")
+@FeignClient(name = "customer-service", url = "${customer.service.url}")
 public interface CustomerClient {
 
     @GetMapping("/{id}")
