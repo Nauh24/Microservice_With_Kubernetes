@@ -1,20 +1,6 @@
 version: '3.8'
 
 services:
-  # Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: postgres-db
-    environment:
-      POSTGRES_DB: microservice_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - microservice-network
 
   # API Gateway
   api-gateway:
@@ -26,15 +12,11 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/microservice_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
-    depends_on:
-      - postgres
     networks:
       - microservice-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # Customer Service
   customer-service:
@@ -46,16 +28,17 @@ services:
       - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/microservice_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/customerdb
       - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_DATASOURCE_PASSWORD=1234
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
       - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
+      - SPRING_SQL_INIT_MODE=never
       - SERVER_PORT=8081
-    depends_on:
-      - postgres
     networks:
       - microservice-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # Job Service
   job-service:
@@ -67,16 +50,17 @@ services:
       - "8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/microservice_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/jobdb
       - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_DATASOURCE_PASSWORD=1234
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
       - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
+      - SPRING_SQL_INIT_MODE=never
       - SERVER_PORT=8082
-    depends_on:
-      - postgres
     networks:
       - microservice-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # Customer Contract Service
   customer-contract-service:
@@ -88,16 +72,20 @@ services:
       - "8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/microservice_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/customercontractdb
       - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_DATASOURCE_PASSWORD=1234
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
       - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
+      - SPRING_SQL_INIT_MODE=never
       - SERVER_PORT=8083
-    depends_on:
-      - postgres
+      - CUSTOMER_SERVICE_URL=http://customer-service:8081/api/customer
+      - JOB_SERVICE_URL=http://job-service:8082/api/job
+      - JOB_CATEGORY_SERVICE_URL=http://job-service:8082/api/job-category
     networks:
       - microservice-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # Customer Payment Service
   customer-payment-service:
@@ -109,16 +97,19 @@ services:
       - "8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/microservice_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/customerpaymentdb
       - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_DATASOURCE_PASSWORD=1234
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
       - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
+      - SPRING_SQL_INIT_MODE=never
       - SERVER_PORT=8084
-    depends_on:
-      - postgres
+      - CUSTOMER_SERVICE_URL=http://customer-service:8081/api/customer
+      - CUSTOMERCONTRACT_SERVICE_URL=http://customer-contract-service:8083/api/customer-contract
     networks:
       - microservice-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # Customer Statistics Service
   customer-statistics-service:
@@ -130,19 +121,15 @@ services:
       - "8085:8085"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/microservice_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING=true
       - SERVER_PORT=8085
       - APP_CUSTOMER-SERVICE_URL=http://customer-service:8081/api/customer
       - APP_CUSTOMER-CONTRACT-SERVICE_URL=http://customer-contract-service:8083/api/customer-contract
       - APP_CUSTOMER-PAYMENT-SERVICE_URL=http://customer-payment-service:8084/api/customer-payment
-    depends_on:
-      - postgres
     networks:
       - microservice-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # Frontend
   frontend:
@@ -156,9 +143,8 @@ services:
       - api-gateway
     networks:
       - microservice-network
-
-volumes:
-  postgres_data:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 networks:
   microservice-network:
