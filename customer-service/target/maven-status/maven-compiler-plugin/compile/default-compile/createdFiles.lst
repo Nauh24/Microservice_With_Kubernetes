@@ -1,10 +1,11 @@
 com\aad\microservice\customer_service\CustomerServiceApplication.class
-com\aad\microservice\customer_service\model\Customer.class
 com\aad\microservice\customer_service\service\CustomerService.class
 com\aad\microservice\customer_service\exception\ErrorCode.class
-com\aad\microservice\customer_service\config\CorsConfig.class
-com\aad\microservice\customer_service\model\Customer$CustomerBuilder.class
 com\aad\microservice\customer_service\controller\CustomerController.class
 com\aad\microservice\customer_service\exception\AppException.class
 com\aad\microservice\customer_service\repository\CustomerRepository.class
+com\aad\microservice\customer_service\exception\GlobalExceptionHandler.class
+com\aad\microservice\customer_service\model\Customer.class
+com\aad\microservice\customer_service\config\CorsConfig.class
+com\aad\microservice\customer_service\model\Customer$CustomerBuilder.class
 com\aad\microservice\customer_service\service\impl\CustomerServiceImpl.class

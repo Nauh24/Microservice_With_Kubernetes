@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum ErrorCode {
-    Unknow_Exception(999),
+    Unknown_Exception(999),
     NotFound_Exception(1000),
     NotAllowCreate_Exception(1001),
     NotAllowUpdate_Exception(1002),

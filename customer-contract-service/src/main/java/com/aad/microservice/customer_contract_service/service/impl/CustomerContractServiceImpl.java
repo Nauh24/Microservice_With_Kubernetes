@@ -11,6 +11,9 @@ import com.aad.microservice.customer_contract_service.model.WorkShift;
 import com.aad.microservice.customer_contract_service.repository.CustomerContractRepository;
 import com.aad.microservice.customer_contract_service.service.CustomerContractService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,6 +32,9 @@ public class CustomerContractServiceImpl implements CustomerContractService {
     private final CustomerClient customerClient;
     private final JobCategoryClient jobCategoryClient;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     public CustomerContractServiceImpl(CustomerContractRepository contractRepository,
                                       CustomerClient customerClient,
                                       JobCategoryClient jobCategoryClient) {
@@ -37,7 +44,30 @@ public class CustomerContractServiceImpl implements CustomerContractService {
     }
 
     @Override
+    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.SERIALIZABLE)
     public CustomerContract createContract(CustomerContract contract) {
+        // Validate input parameters
+        if (contract == null) {
+            throw new AppException(ErrorCode.NotAllowCreate_Exception, "Thông tin hợp đồng không được để trống");
+        }
+
+        if (contract.getCustomerId() == null) {
+            throw new AppException(ErrorCode.CustomerNotFound_Exception, "Mã khách hàng không được để trống");
+        }
+
+        // Check for potential duplicate contracts before processing
+        List<CustomerContract> existingContracts = contractRepository.findByCustomerIdAndStartingDateAndEndingDateAndIsDeletedFalse(
+            contract.getCustomerId(), contract.getStartingDate(), contract.getEndingDate());
+
+        if (!existingContracts.isEmpty()) {
+            for (CustomerContract existing : existingContracts) {
+                if (Math.abs(existing.getTotalAmount() - contract.getTotalAmount()) < 0.01 &&
+                    Objects.equals(existing.getAddress(), contract.getAddress())) {
+                    throw new AppException(ErrorCode.Duplicated_Exception,
+                        "Hợp đồng tương tự đã tồn tại cho khách hàng này với cùng thời gian và địa điểm");
+                }
+            }
+        }
 
         // Kiểm tra khách hàng có tồn tại không
         try {
@@ -122,34 +152,41 @@ public class CustomerContractServiceImpl implements CustomerContractService {
                 jobDetail.setContract(contract);
 
                 // Xử lý WorkShifts nếu có
-                for (WorkShift workShift : jobDetail.getWorkShifts()) {
-                    // Validate work shift fields
-                    if (workShift.getStartTime() == null || workShift.getStartTime().trim().isEmpty()) {
-                        throw new AppException(ErrorCode.InvalidInput_Exception, "Giờ bắt đầu ca làm việc không được để trống");
-                    }
+                if (jobDetail.getWorkShifts() != null) {
+                    for (WorkShift workShift : jobDetail.getWorkShifts()) {
+                        // Validate work shift fields
+                        if (workShift.getStartTime() == null || workShift.getStartTime().trim().isEmpty()) {
+                            throw new AppException(ErrorCode.InvalidInput_Exception, "Giờ bắt đầu ca làm việc không được để trống");
+                        }
 
-                    if (workShift.getEndTime() == null || workShift.getEndTime().trim().isEmpty()) {
-                        throw new AppException(ErrorCode.InvalidInput_Exception, "Giờ kết thúc ca làm việc không được để trống");
-                    }
+                        if (workShift.getEndTime() == null || workShift.getEndTime().trim().isEmpty()) {
+                            throw new AppException(ErrorCode.InvalidInput_Exception, "Giờ kết thúc ca làm việc không được để trống");
+                        }
 
-                    if (workShift.getNumberOfWorkers() == null || workShift.getNumberOfWorkers() <= 0) {
-                        throw new AppException(ErrorCode.InvalidInput_Exception, "Số lượng nhân công phải lớn hơn 0");
-                    }
+                        if (workShift.getNumberOfWorkers() == null || workShift.getNumberOfWorkers() <= 0) {
+                            throw new AppException(ErrorCode.InvalidInput_Exception, "Số lượng nhân công phải lớn hơn 0");
+                        }
 
-                    if (workShift.getSalary() == null || workShift.getSalary() < 0) {
-                        throw new AppException(ErrorCode.InvalidInput_Exception, "Mức lương phải lớn hơn hoặc bằng 0");
-                    }
+                        if (workShift.getSalary() == null || workShift.getSalary() < 0) {
+                            throw new AppException(ErrorCode.InvalidInput_Exception, "Mức lương phải lớn hơn hoặc bằng 0");
+                        }
 
-                    if (workShift.getWorkingDays() == null || workShift.getWorkingDays().trim().isEmpty()) {
-                        throw new AppException(ErrorCode.InvalidInput_Exception, "Ngày làm việc không được để trống");
-                    }
+                        if (workShift.getWorkingDays() == null || workShift.getWorkingDays().trim().isEmpty()) {
+                            throw new AppException(ErrorCode.InvalidInput_Exception, "Ngày làm việc không được để trống");
+                        }
 
-                    // Thiết lập các giá trị mặc định cho WorkShift
-                    workShift.setCreatedAt(LocalDateTime.now());
-                    workShift.setUpdatedAt(LocalDateTime.now());
-                    workShift.setIsDeleted(false);
-                    workShift.setJobDetail(jobDetail);
+                        // Thiết lập các giá trị mặc định cho WorkShift
+                        workShift.setCreatedAt(LocalDateTime.now());
+                        workShift.setUpdatedAt(LocalDateTime.now());
+                        workShift.setIsDeleted(false);
+                        workShift.setJobDetail(jobDetail);
+                    }
                 }
+            }
+        } else {
+            // Nếu không có JobDetails, khởi tạo danh sách rỗng để tránh null pointer
+            if (contract.getJobDetails() == null) {
+                contract.setJobDetails(new ArrayList<>());
             }
         }
 
@@ -160,11 +197,32 @@ public class CustomerContractServiceImpl implements CustomerContractService {
             contract.setTotalAmount(calculatedAmount);
         }
 
-        // Lưu hợp đồng
-        return contractRepository.save(contract);
+        // Add unique identifier to prevent duplicate processing
+        String processingKey = "contract_" + contract.getCustomerId() + "_" + System.currentTimeMillis();
+        System.out.println("Processing contract creation with key: " + processingKey);
+
+        // Lưu hợp đồng với proper transaction handling
+        System.out.println("Saving contract for customer ID: " + contract.getCustomerId() + ", JobDetails count: " +
+                          (contract.getJobDetails() != null ? contract.getJobDetails().size() : 0));
+
+        try {
+            // Save contract without clearing entity manager to maintain transaction context
+            CustomerContract savedContract = contractRepository.save(contract);
+
+            // Force immediate flush to database to ensure data is persisted
+            entityManager.flush();
+
+            System.out.println("Contract successfully saved with ID: " + savedContract.getId() + " (key: " + processingKey + ")");
+            return savedContract;
+
+        } catch (Exception e) {
+            System.err.println("Error saving contract with key " + processingKey + ": " + e.getMessage());
+            throw new AppException(ErrorCode.NotAllowCreate_Exception, "Không thể tạo hợp đồng: " + e.getMessage());
+        }
     }
 
     @Override
+    @Transactional
     public CustomerContract updateContract(CustomerContract contract) {
         // Kiểm tra hợp đồng có tồn tại không
         Optional<CustomerContract> existingContract = contractRepository.findByIdAndIsDeletedFalse(contract.getId());
@@ -304,6 +362,7 @@ public class CustomerContractServiceImpl implements CustomerContractService {
                     workShift.setJobDetail(jobDetail);
                 }
 
+                // Use the helper method to properly manage bidirectional relationship
                 currentContract.addJobDetail(jobDetail);
             }
         }
@@ -323,6 +382,7 @@ public class CustomerContractServiceImpl implements CustomerContractService {
     }
 
     @Override
+    @Transactional
     public void deleteContract(Long id) {
         Optional<CustomerContract> contract = contractRepository.findByIdAndIsDeletedFalse(id);
         if (contract.isEmpty()) {
@@ -386,6 +446,7 @@ public class CustomerContractServiceImpl implements CustomerContractService {
     }
 
     @Override
+    @Transactional
     public CustomerContract updateContractStatus(Long id, Integer status) {
         Optional<CustomerContract> contract = contractRepository.findByIdAndIsDeletedFalse(id);
         if (contract.isEmpty()) {

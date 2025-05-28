@@ -22,4 +22,6 @@ public interface CustomerContractRepository extends JpaRepository<CustomerContra
 
     List<CustomerContract> findByStartingDateBetweenAndIsDeletedFalse(LocalDate startDate, LocalDate endDate);
 
+    List<CustomerContract> findByCustomerIdAndStartingDateAndEndingDateAndIsDeletedFalse(Long customerId, LocalDate startingDate, LocalDate endingDate);
+
 }

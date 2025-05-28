@@ -1,0 +1,8 @@
+{
+  "paymentDate": "2025-05-28T09:30:00.000Z",
+  "paymentMethod": "CASH",
+  "paymentAmount": 5000000,
+  "note": "Test payment for debugging",
+  "customerContractId": 10,
+  "customerId": 1
+}

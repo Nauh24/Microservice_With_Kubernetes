@@ -3,6 +3,7 @@ com\aad\microservice\customer_contract_service\model\Customer.class
 com\aad\microservice\customer_contract_service\exception\GlobalExceptionHandler.class
 com\aad\microservice\customer_contract_service\service\impl\WorkShiftServiceImpl.class
 com\aad\microservice\customer_contract_service\model\JobDetail$JobDetailBuilder.class
+com\aad\microservice\customer_contract_service\controller\ContractController.class
 com\aad\microservice\customer_contract_service\service\WorkShiftService.class
 com\aad\microservice\customer_contract_service\model\WorkShift$WorkShiftBuilder.class
 com\aad\microservice\customer_contract_service\model\CustomerContract$CustomerContractBuilder.class

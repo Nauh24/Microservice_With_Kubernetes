@@ -1,0 +1,67 @@
+{
+  "contractTests": [
+    {
+      "testName": "Single Contract Creation",
+      "passed": true,
+      "details": "Created contract ID: 14",
+      "timestamp": "2025-05-28T04:45:32.714Z"
+    },
+    {
+      "testName": "Rapid Contract Prevention",
+      "passed": true,
+      "details": "3 successful, 3 unique IDs in 41ms",
+      "timestamp": "2025-05-28T04:45:32.755Z"
+    }
+  ],
+  "paymentTests": [
+    {
+      "testName": "Single Payment Creation",
+      "passed": true,
+      "details": "Created payment ID: 21",
+      "timestamp": "2025-05-28T04:45:32.808Z"
+    },
+    {
+      "testName": "Rapid Payment Prevention",
+      "passed": true,
+      "details": "3 successful, 3 unique IDs in 46ms",
+      "timestamp": "2025-05-28T04:45:32.854Z"
+    }
+  ],
+  "validationTests": [
+    {
+      "testName": "Overpayment Prevention",
+      "passed": true,
+      "details": "Correctly rejected overpayment",
+      "timestamp": "2025-05-28T04:45:32.897Z"
+    },
+    {
+      "testName": "Invalid Contract Rejection",
+      "passed": true,
+      "details": "Invalid contract correctly rejected",
+      "timestamp": "2025-05-28T04:45:32.929Z"
+    },
+    {
+      "testName": "Invalid Payment Rejection",
+      "passed": true,
+      "details": "Invalid payment correctly rejected",
+      "timestamp": "2025-05-28T04:45:32.943Z"
+    },
+    {
+      "testName": "No Duplicate Contracts",
+      "passed": false,
+      "details": "17 contracts, 6 potential duplicates",
+      "timestamp": "2025-05-28T04:45:33.007Z"
+    },
+    {
+      "testName": "No Duplicate Payments",
+      "passed": false,
+      "details": "24 payments, 6 potential duplicates",
+      "timestamp": "2025-05-28T04:45:33.007Z"
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 2,
+    "total": 9
+  }
+}

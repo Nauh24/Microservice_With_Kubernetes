@@ -22,11 +22,11 @@ spring:
         - id: customer-contract-service
           uri: http://customer-contract-service:8083
           predicates:
-            - Path=/api/customer-contract/**
+            - Path=/api/customer-contract/**,/api/contracts/**
         - id: customer-payment-service
           uri: http://customer-payment-service:8084
           predicates:
-            - Path=/api/customer-payment/**
+            - Path=/api/customer-payment/**,/api/payments/**
         - id: job-detail-service
           uri: http://customer-contract-service:8083
           predicates:

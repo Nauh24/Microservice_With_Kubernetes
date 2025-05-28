@@ -12,10 +12,15 @@ import com.aad.microservice.customer_payment_service.model.CustomerPayment;
 import com.aad.microservice.customer_payment_service.repository.CustomerPaymentRepository;
 import com.aad.microservice.customer_payment_service.service.CustomerPaymentService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -24,6 +29,9 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
     private final CustomerPaymentRepository paymentRepository;
     private final CustomerClient customerClient;
     private final CustomerContractClient contractClient;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public CustomerPaymentServiceImpl(CustomerPaymentRepository paymentRepository,
                                      CustomerClient customerClient,
@@ -34,7 +42,37 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
     }
 
     @Override
+    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.SERIALIZABLE)
     public CustomerPayment createPayment(CustomerPayment payment) {
+        // Validate input parameters
+        if (payment == null) {
+            throw new AppException(ErrorCode.NotAllowCreate_Exception, "Thông tin thanh toán không được để trống");
+        }
+
+        if (payment.getPaymentAmount() == null || payment.getPaymentAmount() <= 0) {
+            throw new AppException(ErrorCode.InvalidAmount_Exception, "Số tiền thanh toán phải lớn hơn 0");
+        }
+
+        if (payment.getCustomerContractId() == null) {
+            throw new AppException(ErrorCode.ContractNotFound_Exception, "Mã hợp đồng không được để trống");
+        }
+
+        // Check for potential duplicate payments
+        LocalDateTime paymentDate = payment.getPaymentDate() != null ? payment.getPaymentDate() : LocalDateTime.now();
+        LocalDate paymentDateOnly = paymentDate.toLocalDate();
+
+        List<CustomerPayment> existingPayments = paymentRepository.findByCustomerContractIdAndPaymentAmountAndPaymentDateAndPaymentMethodAndIsDeletedFalse(
+            payment.getCustomerContractId(), payment.getPaymentAmount(), paymentDateOnly, payment.getPaymentMethod());
+
+        if (!existingPayments.isEmpty()) {
+            for (CustomerPayment existing : existingPayments) {
+                if (Objects.equals(existing.getNote(), payment.getNote())) {
+                    throw new AppException(ErrorCode.Duplicated_Exception,
+                        "Thanh toán tương tự đã tồn tại cho hợp đồng này với cùng số tiền và phương thức");
+                }
+            }
+        }
+
         // Kiểm tra hợp đồng có tồn tại không
         try {
             Boolean contractExists = contractClient.checkContractExists(payment.getCustomerContractId());
@@ -64,16 +102,16 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
                 throw new AppException(ErrorCode.CustomerNotFound_Exception, "Không tìm thấy thông tin khách hàng");
             }
 
-            // Kiểm tra số tiền thanh toán
-            if (payment.getPaymentAmount() == null || payment.getPaymentAmount() <= 0) {
-                throw new AppException(ErrorCode.InvalidAmount_Exception, "Số tiền thanh toán phải lớn hơn 0");
-            }
-
             // Kiểm tra số tiền thanh toán không vượt quá số tiền còn lại của hợp đồng
             Double remainingAmount = getRemainingAmountByContractId(payment.getCustomerContractId());
             if (payment.getPaymentAmount() > remainingAmount) {
                 throw new AppException(ErrorCode.InvalidAmount_Exception,
-                        "Số tiền thanh toán không được vượt quá số tiền còn lại của hợp đồng");
+                        "Số tiền thanh toán (" + payment.getPaymentAmount() + " VNĐ) không được vượt quá số tiền còn lại (" + remainingAmount + " VNĐ)");
+            }
+
+            // Additional validation: Check if payment amount is reasonable (not negative or zero)
+            if (payment.getPaymentAmount() <= 0) {
+                throw new AppException(ErrorCode.InvalidAmount_Exception, "Số tiền thanh toán phải lớn hơn 0");
             }
 
         } catch (Exception e) {
@@ -89,8 +127,27 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
         payment.setIsDeleted(false);
         payment.setPaymentDate(LocalDateTime.now());
 
-        // Lưu thanh toán
-        return paymentRepository.save(payment);
+        // Add unique identifier to prevent duplicate processing
+        String processingKey = "payment_" + payment.getCustomerContractId() + "_" + payment.getCustomerId() + "_" + System.currentTimeMillis();
+        System.out.println("Processing payment creation with key: " + processingKey);
+
+        // Lưu thanh toán với proper transaction handling
+        System.out.println("Saving payment for contract ID: " + payment.getCustomerContractId() + ", Amount: " + payment.getPaymentAmount());
+
+        try {
+            // Save payment without clearing entity manager to maintain transaction context
+            CustomerPayment savedPayment = paymentRepository.save(payment);
+
+            // Force immediate flush to database to ensure data is persisted
+            entityManager.flush();
+
+            System.out.println("Payment successfully saved with ID: " + savedPayment.getId() + " (key: " + processingKey + ")");
+            return savedPayment;
+
+        } catch (Exception e) {
+            System.err.println("Error saving payment with key " + processingKey + ": " + e.getMessage());
+            throw new AppException(ErrorCode.NotAllowCreate_Exception, "Không thể tạo thanh toán: " + e.getMessage());
+        }
     }
 
     @Override
