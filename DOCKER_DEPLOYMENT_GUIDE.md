@@ -1,5 +1,15 @@
 # Docker Deployment Guide for Microservices
 
+## ✅ TRẠNG THÁI: ĐÃ KHẮC PHỤC THÀNH CÔNG
+
+**Vấn đề kết nối frontend-backend đã được giải quyết**: Frontend hiện có thể kết nối thành công với backend thông qua API Gateway khi các services chạy trên Docker.
+
+### Các Thay Đổi Đã Thực Hiện:
+1. **Cải thiện CORS Configuration** - Cập nhật API Gateway để hỗ trợ tất cả origins
+2. **Thêm Proxy Configuration** - Tạo setupProxy.js cho frontend
+3. **Cập nhật API Client** - Đơn giản hóa logic kết nối
+4. **Cấu hình Server Binding** - API Gateway bind 0.0.0.0 để accessible từ host
+
 This guide provides step-by-step instructions to build and deploy all microservices to Docker containers with external PostgreSQL database connection.
 
 ## Prerequisites

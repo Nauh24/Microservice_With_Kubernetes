@@ -131,6 +131,27 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+  # Frontend React Application
+  frontend:
+    build:
+      context: ./microservice_fe
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://api-gateway:8080
+    networks:
+      - microservice-network
+    depends_on:
+      - api-gateway
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
 networks:
   microservice-network:
     driver: bridge

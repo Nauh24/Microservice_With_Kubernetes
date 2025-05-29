@@ -41,6 +41,7 @@ spring:
 
 server:
   port: 8080
+  address: 0.0.0.0  # Bind to all interfaces để có thể truy cập từ host machine
 
 management:
   endpoints:
