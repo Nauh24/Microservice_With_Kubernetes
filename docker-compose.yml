@@ -131,21 +131,6 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  # Frontend
-  frontend:
-    build:
-      context: ./microservice_fe
-      dockerfile: Dockerfile
-    container_name: frontend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - api-gateway
-    networks:
-      - microservice-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
 networks:
   microservice-network:
     driver: bridge

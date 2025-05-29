@@ -7,9 +7,10 @@
 
 -- 1. Add unique constraint to prevent duplicate contracts
 -- This prevents identical contracts from being created
+-- Note: Removed address from unique constraint to allow contracts without addresses
 ALTER TABLE customer_contracts
 ADD CONSTRAINT uk_customer_contracts_no_duplicates
-UNIQUE (customer_id, starting_date, ending_date, total_amount, address);
+UNIQUE (customer_id, starting_date, ending_date, total_amount);
 
 -- 2. Add check constraints for data validation
 ALTER TABLE customer_contracts
@@ -61,11 +62,10 @@ SELECT
     starting_date,
     ending_date,
     total_amount,
-    address,
     COUNT(*) as count
 FROM customer_contracts
 WHERE is_deleted = false
-GROUP BY customer_id, starting_date, ending_date, total_amount, address
+GROUP BY customer_id, starting_date, ending_date, total_amount
 HAVING COUNT(*) > 1;
 
 -- Check for existing duplicate payments
@@ -90,7 +90,7 @@ WITH duplicate_contracts AS (
     SELECT
         id,
         ROW_NUMBER() OVER (
-            PARTITION BY customer_id, starting_date, ending_date, total_amount, address
+            PARTITION BY customer_id, starting_date, ending_date, total_amount
             ORDER BY id
         ) as rn
     FROM customer_contracts

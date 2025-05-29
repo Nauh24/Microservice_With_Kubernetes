@@ -7,7 +7,7 @@ Write-Host ""
 # Function to check if PostgreSQL is running
 function Test-PostgreSQLConnection {
     Write-Host "Checking PostgreSQL connection..." -ForegroundColor Yellow
-    
+
     try {
         $connection = Test-NetConnection -ComputerName localhost -Port 5432 -WarningAction SilentlyContinue
         if ($connection.TcpTestSucceeded) {
@@ -53,14 +53,7 @@ try {
     exit 1
 }
 
-# Check if Node.js is available
-try {
-    node --version | Out-Null
-    Write-Host "✓ Node.js is available" -ForegroundColor Green
-} catch {
-    Write-Host "✗ Node.js is not available" -ForegroundColor Red
-    exit 1
-}
+
 
 Write-Host ""
 Write-Host "STEP 1: DATABASE SETUP" -ForegroundColor Cyan
@@ -105,7 +98,6 @@ Write-Host "SYSTEM OVERVIEW:" -ForegroundColor Cyan
 Write-Host "=================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "SERVICES:" -ForegroundColor Yellow
-Write-Host "  Frontend:                     http://localhost:3000" -ForegroundColor White
 Write-Host "  API Gateway:                  http://localhost:8080" -ForegroundColor White
 Write-Host "  Customer Service:             http://localhost:8081" -ForegroundColor White
 Write-Host "  Job Service:                  http://localhost:8082" -ForegroundColor White
@@ -126,7 +118,7 @@ Write-Host "  ✓ Data initialization disabled (no conflicts)" -ForegroundColor 
 Write-Host "  ✓ Vietnamese job categories loaded" -ForegroundColor Green
 Write-Host "  ✓ Inter-service communication configured" -ForegroundColor Green
 Write-Host "  ✓ Health checks enabled for all services" -ForegroundColor Green
-Write-Host "  ✓ Proper port assignments (8080-8085, 3000)" -ForegroundColor Green
+Write-Host "  ✓ Proper port assignments (8080-8085)" -ForegroundColor Green
 Write-Host ""
 Write-Host "MANAGEMENT COMMANDS:" -ForegroundColor Yellow
 Write-Host "  View logs:        docker-compose logs -f [service-name]" -ForegroundColor White

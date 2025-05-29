@@ -10,27 +10,27 @@ function Build-MavenProject {
         [string]$ProjectPath,
         [string]$ProjectName
     )
-    
+
     Write-Host "Building $ProjectName..." -ForegroundColor Yellow
     Set-Location $ProjectPath
-    
+
     # Clean and package the project
     mvn clean package -DskipTests
-    
+
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✓ $ProjectName built successfully!" -ForegroundColor Green
     } else {
         Write-Host "✗ Failed to build $ProjectName" -ForegroundColor Red
         exit 1
     }
-    
+
     Set-Location ..
 }
 
 # Function to check if PostgreSQL is running
 function Test-PostgreSQLConnection {
     Write-Host "Checking PostgreSQL connection..." -ForegroundColor Yellow
-    
+
     try {
         $connection = Test-NetConnection -ComputerName localhost -Port 5432 -WarningAction SilentlyContinue
         if ($connection.TcpTestSucceeded) {
@@ -66,7 +66,7 @@ Write-Host "1. BUILDING SPRING BOOT MICROSERVICES..." -ForegroundColor Cyan
 # Build all Spring Boot microservices
 $services = @(
     "api-gateway",
-    "customer-service", 
+    "customer-service",
     "job-service",
     "customer-contract-service",
     "customer-payment-service",
@@ -78,27 +78,7 @@ foreach ($service in $services) {
 }
 
 Write-Host ""
-Write-Host "2. BUILDING REACT FRONTEND..." -ForegroundColor Cyan
-
-# Build React frontend
-Write-Host "Building React frontend..." -ForegroundColor Yellow
-Set-Location microservice_fe
-
-# Install dependencies and build
-npm install
-npm run build
-
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "✓ Frontend built successfully!" -ForegroundColor Green
-} else {
-    Write-Host "✗ Failed to build frontend" -ForegroundColor Red
-    exit 1
-}
-
-Set-Location ..
-
-Write-Host ""
-Write-Host "3. BUILDING DOCKER IMAGES..." -ForegroundColor Cyan
+Write-Host "2. BUILDING DOCKER IMAGES..." -ForegroundColor Cyan
 
 # Stop existing containers
 Write-Host "Stopping existing containers..." -ForegroundColor Yellow
@@ -116,7 +96,7 @@ if ($LASTEXITCODE -eq 0) {
 }
 
 Write-Host ""
-Write-Host "4. DEPLOYING MICROSERVICES..." -ForegroundColor Cyan
+Write-Host "3. DEPLOYING MICROSERVICES..." -ForegroundColor Cyan
 
 # Deploy all services
 Write-Host "Starting all microservices..." -ForegroundColor Yellow
@@ -130,7 +110,7 @@ if ($LASTEXITCODE -eq 0) {
 }
 
 Write-Host ""
-Write-Host "5. CHECKING SERVICE STATUS..." -ForegroundColor Cyan
+Write-Host "4. CHECKING SERVICE STATUS..." -ForegroundColor Cyan
 
 # Wait a moment for services to start
 Start-Sleep -Seconds 10
@@ -143,7 +123,6 @@ Write-Host ""
 Write-Host "🎉 DEPLOYMENT COMPLETED SUCCESSFULLY!" -ForegroundColor Green
 Write-Host ""
 Write-Host "SERVICES ACCESSIBLE AT:" -ForegroundColor Cyan
-Write-Host "  Frontend:                     http://localhost:3000" -ForegroundColor White
 Write-Host "  API Gateway:                  http://localhost:8080" -ForegroundColor White
 Write-Host "  Customer Service:             http://localhost:8081" -ForegroundColor White
 Write-Host "  Job Service:                  http://localhost:8082" -ForegroundColor White

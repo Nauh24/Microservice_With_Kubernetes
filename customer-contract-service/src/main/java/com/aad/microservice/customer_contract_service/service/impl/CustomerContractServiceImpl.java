@@ -61,8 +61,13 @@ public class CustomerContractServiceImpl implements CustomerContractService {
 
         if (!existingContracts.isEmpty()) {
             for (CustomerContract existing : existingContracts) {
+                // Only check for duplicates if both contracts have meaningful addresses
+                // Skip duplicate check if either address is null or empty to allow contracts without addresses
+                boolean bothHaveAddresses = (existing.getAddress() != null && !existing.getAddress().trim().isEmpty()) &&
+                                          (contract.getAddress() != null && !contract.getAddress().trim().isEmpty());
+
                 if (Math.abs(existing.getTotalAmount() - contract.getTotalAmount()) < 0.01 &&
-                    Objects.equals(existing.getAddress(), contract.getAddress())) {
+                    bothHaveAddresses && Objects.equals(existing.getAddress(), contract.getAddress())) {
                     throw new AppException(ErrorCode.Duplicated_Exception,
                         "Hợp đồng tương tự đã tồn tại cho khách hàng này với cùng thời gian và địa điểm");
                 }
@@ -136,8 +141,9 @@ public class CustomerContractServiceImpl implements CustomerContractService {
                     throw new AppException(ErrorCode.InvalidDate_Exception, "Ngày bắt đầu công việc phải trước ngày kết thúc");
                 }
 
+                // Work location is optional - if not provided, use a default value
                 if (jobDetail.getWorkLocation() == null || jobDetail.getWorkLocation().trim().isEmpty()) {
-                    throw new AppException(ErrorCode.InvalidInput_Exception, "Địa điểm làm việc không được để trống");
+                    jobDetail.setWorkLocation("Địa điểm sẽ được thông báo sau");
                 }
 
                 // Kiểm tra xem có ít nhất một ca làm việc không
@@ -187,6 +193,21 @@ public class CustomerContractServiceImpl implements CustomerContractService {
             // Nếu không có JobDetails, khởi tạo danh sách rỗng để tránh null pointer
             if (contract.getJobDetails() == null) {
                 contract.setJobDetails(new ArrayList<>());
+            }
+        }
+
+        // Auto-derive address from job details if not provided
+        if (contract.getAddress() == null || contract.getAddress().trim().isEmpty()) {
+            if (contract.getJobDetails() != null && !contract.getJobDetails().isEmpty()) {
+                // Use the first job detail's work location as the main address
+                String firstWorkLocation = contract.getJobDetails().get(0).getWorkLocation();
+                if (firstWorkLocation != null && !firstWorkLocation.trim().isEmpty() &&
+                    !firstWorkLocation.equals("Địa điểm sẽ được thông báo sau")) {
+                    contract.setAddress(firstWorkLocation);
+                } else {
+                    // If no specific work location is provided, use a generic address
+                    contract.setAddress("Địa chỉ sẽ được thông báo sau");
+                }
             }
         }
 
@@ -313,8 +334,9 @@ public class CustomerContractServiceImpl implements CustomerContractService {
                     throw new AppException(ErrorCode.InvalidDate_Exception, "Ngày bắt đầu công việc phải trước ngày kết thúc");
                 }
 
+                // Work location is optional - if not provided, use a default value
                 if (jobDetail.getWorkLocation() == null || jobDetail.getWorkLocation().trim().isEmpty()) {
-                    throw new AppException(ErrorCode.InvalidInput_Exception, "Địa điểm làm việc không được để trống");
+                    jobDetail.setWorkLocation("Địa điểm sẽ được thông báo sau");
                 }
 
                 // Kiểm tra xem có ít nhất một ca làm việc không

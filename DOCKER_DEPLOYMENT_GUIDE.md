@@ -8,7 +8,6 @@ This guide provides step-by-step instructions to build and deploy all microservi
 - **Docker Desktop** (latest version)
 - **PostgreSQL** (running on host machine via pgAdmin 4)
 - **Java 17** (for building Spring Boot services)
-- **Node.js** (for building React frontend)
 - **Maven** (for building Spring Boot services)
 - **PowerShell** (for running deployment scripts)
 
@@ -53,7 +52,6 @@ CREATE DATABASE customerpaymentdb;
    This script will:
    - Check PostgreSQL connection
    - Build all Spring Boot microservices
-   - Build React frontend
    - Create Docker images
    - Deploy all services with docker-compose
 
@@ -83,7 +81,6 @@ CREATE DATABASE customerpaymentdb;
 - **Customer Contract Service**: 8083
 - **Customer Payment Service**: 8084
 - **Customer Statistics Service**: 8085
-- **Frontend**: 3000
 
 ### Database Configuration
 Each service connects to its own database:
@@ -104,7 +101,6 @@ Each service connects to its own database:
 
 After successful deployment, access the services at:
 
-- **Frontend**: http://localhost:3000
 - **API Gateway**: http://localhost:8080
 - **Customer Service**: http://localhost:8081/actuator/health
 - **Job Service**: http://localhost:8082/actuator/health
