@@ -1,8 +1,10 @@
 package com.aad.microservice.customer_payment_service.controller;
 
+import com.aad.microservice.customer_payment_service.dto.CreatePaymentRequest;
 import com.aad.microservice.customer_payment_service.model.Customer;
 import com.aad.microservice.customer_payment_service.model.CustomerContract;
 import com.aad.microservice.customer_payment_service.model.CustomerPayment;
+import com.aad.microservice.customer_payment_service.model.ContractPayment;
 import com.aad.microservice.customer_payment_service.service.CustomerPaymentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +34,25 @@ public class CustomerPaymentController {
     @PostMapping
     public ResponseEntity<CustomerPayment> createPayment(@RequestBody CustomerPayment payment) {
         return ResponseEntity.ok(paymentService.createPayment(payment));
+    }
+
+    // API mới - hỗ trợ thanh toán nhiều hợp đồng
+    @PostMapping("/multiple-contracts")
+    public ResponseEntity<CustomerPayment> createPaymentWithMultipleContracts(@RequestBody CreatePaymentRequest request) {
+        System.out.println("🚀 Controller: Received multiple contracts payment request:");
+        System.out.println("Customer ID: " + request.getCustomerId());
+        System.out.println("Total Amount: " + request.getTotalAmount());
+        System.out.println("Payment Method: " + request.getPaymentMethod());
+        System.out.println("Contract Payments Count: " + (request.getContractPayments() != null ? request.getContractPayments().size() : 0));
+
+        try {
+            CustomerPayment result = paymentService.createPaymentWithMultipleContracts(request);
+            System.out.println("✅ Controller: Payment created successfully with ID: " + result.getId());
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.err.println("❌ Controller: Error creating payment: " + e.getMessage());
+            throw e;
+        }
     }
 
     @GetMapping
@@ -74,5 +95,17 @@ public class CustomerPaymentController {
     @GetMapping("/contract/{contractId}/remaining-amount")
     public ResponseEntity<Double> getRemainingAmountByContractId(@PathVariable Long contractId) {
         return ResponseEntity.ok(paymentService.getRemainingAmountByContractId(contractId));
+    }
+
+    // API lấy danh sách thanh toán theo payment ID
+    @GetMapping("/payment/{paymentId}/contract-payments")
+    public ResponseEntity<List<ContractPayment>> getContractPaymentsByPaymentId(@PathVariable Long paymentId) {
+        return ResponseEntity.ok(paymentService.getContractPaymentsByPaymentId(paymentId));
+    }
+
+    // API lấy danh sách thanh toán theo contract ID
+    @GetMapping("/contract/{contractId}/contract-payments")
+    public ResponseEntity<List<ContractPayment>> getContractPaymentsByContractId(@PathVariable Long contractId) {
+        return ResponseEntity.ok(paymentService.getContractPaymentsByContractId(contractId));
     }
 }

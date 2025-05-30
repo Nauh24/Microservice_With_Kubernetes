@@ -1,502 +1,562 @@
-# Sơ đồ lớp chi tiết cho module "Ký hợp đồng với khách thuê lao động"
+# Biểu đồ lớp chi tiết cho chức năng "Ký hợp đồng với khách thuê lao động"
 
-Sơ đồ lớp dưới đây mô tả chi tiết các lớp và mối quan hệ giữa chúng trong module "Ký hợp đồng với khách thuê lao động" theo kiến trúc vi dịch vụ (microservices). Mỗi microservice được thể hiện như một package riêng biệt.
+Biểu đồ lớp dưới đây mô tả chi tiết các lớp và mối quan hệ giữa chúng trong chức năng "Ký hợp đồng với khách thuê lao động" theo kiến trúc vi dịch vụ (microservices). Được cập nhật dựa trên code thực tế trong customer-contract-service.
 
-## Các thành phần tham gia
+## Các thành phần chính
 
-1. **frontend**: Giao diện người dùng
+1. **frontend**: Giao diện người dùng React với PrimeReact
 2. **api-gateway**: Cổng vào cho tất cả các request từ frontend đến các microservice
 3. **customer-service**: Quản lý thông tin khách hàng
-4. **job-service**: Quản lý thông tin loại công việc (đầu việc)
-5. **customer-contract-service**: Quản lý hợp đồng với khách hàng
+4. **job-service**: Quản lý thông tin loại công việc
+5. **customer-contract-service**: Quản lý hợp đồng, chi tiết công việc và ca làm việc
 
-## Sơ đồ lớp
+## Biểu đồ lớp chi tiết
 
 ```mermaid
 classDiagram
-    %% Microservice packages
+    %% Frontend Components
     namespace frontend {
-        class CustomerContractList
-        class CustomerSelectionDialog
-        class CustomerAddDialog
-        class ContractForm
-        class ContractDetail
+        class CustomerContractList {
+            +contracts: CustomerContract[]
+            +loading: boolean
+            +fetchContracts()
+            +handleCreateContract()
+            +handleViewContract(id)
+            +handleDeleteContract(id)
+        }
+
+        class ContractForm {
+            +contract: CustomerContract
+            +customers: Customer[]
+            +jobCategories: JobCategory[]
+            +onSubmit(contract)
+            +onCancel()
+            +calculateTotalAmount()
+            +validateForm()
+        }
+
+        class ContractDetail {
+            +contract: CustomerContract
+            +workSchedule: WorkScheduleItem[]
+            +formatCurrency(amount)
+            +formatDate(date)
+            +calculateWorkingDates()
+        }
+
+        class CustomerSelectionDialog {
+            +customers: Customer[]
+            +selectedCustomer: Customer
+            +searchTerm: string
+            +onSelect(customer)
+            +onClose()
+            +searchCustomers()
+        }
     }
 
+    %% API Gateway
     namespace api-gateway {
-        class ApiGateway
-        class RouteConfig
-        class AuthFilter
-        class LoadBalancer
-    }
-
-    namespace customer-service {
-        class CustomerController
-        class CustomerService
-        class CustomerServiceImpl
-        class Customer
-        class CustomerRepository
-    }
-
-    namespace customer-contract-service {
-        class CustomerContractController
-        class CustomerContractService
-        class CustomerContractServiceImpl
-        class CustomerContract
-        class CustomerContractRepository
-        class CustomerClient
-        class JobCategoryClient
-        class Customer
-        class JobCategory
-    }
-
-    namespace job-service {
-        class JobCategoryController
-        class JobCategoryService
-        class JobCategoryServiceImpl
-        class JobCategory
-        class JobCategoryRepository
+        class ApiGateway {
+            +routeToCustomerService()
+            +routeToJobService()
+            +routeToContractService()
+            +handleAuthentication()
+            +loadBalance()
+        }
     }
 
     %% Customer Service
-    class Customer {
-        +Long id
-        +String fullName
-        +String companyName
-        +String phoneNumber
-        +String email
-        +String address
-        +Boolean isDeleted
-        +LocalDateTime createdAt
-        +LocalDateTime updatedAt
-    }
+    namespace customer-service {
+        class Customer {
+            -id: Long
+            -fullName: String
+            -companyName: String
+            -phoneNumber: String
+            -email: String
+            -address: String
+            -isDeleted: Boolean
+            -createdAt: LocalDateTime
+            -updatedAt: LocalDateTime
+        }
 
-    class CustomerController {
-        +ResponseEntity<Customer> getCustomerById(Long id)
-        +ResponseEntity<Customer> createCustomer(Customer customer)
-        +ResponseEntity<List<Customer>> getAllCustomers()
-        +ResponseEntity<Customer> updateCustomer(Customer customer)
-        +ResponseEntity<Void> deleteCustomer(Long id)
-        +ResponseEntity<Boolean> checkCustomerExists(Long id)
-        +ResponseEntity<List<Customer>> searchCustomers(String fullName, String phoneNumber)
-    }
+        class CustomerController {
+            +getCustomerById(id): Customer
+            +getAllCustomers(): List~Customer~
+            +createCustomer(customer): Customer
+            +updateCustomer(customer): Customer
+            +deleteCustomer(id): void
+            +checkCustomerExists(id): Boolean
+            +searchCustomers(fullName, phoneNumber): List~Customer~
+        }
 
-    class CustomerService {
-        <<interface>>
-        +Customer getCustomerById(Long id)
-        +Customer createCustomer(Customer customer)
-        +List<Customer> getAllCustomers()
-        +Customer updateCustomer(Customer customer)
-        +void deleteCustomer(Long id)
-        +boolean checkCustomerExists(Long id)
-        +List<Customer> searchCustomers(String fullName, String phoneNumber)
-    }
+        class CustomerService {
+            <<interface>>
+            +getCustomerById(id): Customer
+            +getAllCustomers(): List~Customer~
+            +createCustomer(customer): Customer
+            +updateCustomer(customer): Customer
+            +deleteCustomer(id): void
+            +checkCustomerExists(id): Boolean
+            +searchCustomers(fullName, phoneNumber): List~Customer~
+        }
 
-    class CustomerServiceImpl {
-        +Customer getCustomerById(Long id)
-        +Customer createCustomer(Customer customer)
-        +List<Customer> getAllCustomers()
-        +Customer updateCustomer(Customer customer)
-        +void deleteCustomer(Long id)
-        +boolean checkCustomerExists(Long id)
-        +List<Customer> searchCustomers(String fullName, String phoneNumber)
-    }
+        class CustomerServiceImpl {
+            -customerRepository: CustomerRepository
+            +getCustomerById(id): Customer
+            +getAllCustomers(): List~Customer~
+            +createCustomer(customer): Customer
+            +updateCustomer(customer): Customer
+            +deleteCustomer(id): void
+            +checkCustomerExists(id): Boolean
+            +searchCustomers(fullName, phoneNumber): List~Customer~
+        }
 
-    class CustomerRepository {
-        <<interface>>
-        +Optional<Customer> findByIdAndIsDeletedFalse(Long id)
-        +List<Customer> findByIsDeletedFalse()
-        +List<Customer> findByFullNameContainingAndIsDeletedFalse(String fullName)
-        +List<Customer> findByPhoneNumberContainingAndIsDeletedFalse(String phoneNumber)
-    }
-
-    %% Customer Contract Service
-    class CustomerContract {
-        +Long id
-        +String contractCode
-        +LocalDate startingDate
-        +LocalDate endingDate
-        +LocalDate signedDate
-        +Integer numberOfWorkers
-        +Double totalAmount
-        +String address
-        +String description
-        +Long jobCategoryId
-        +Long customerId
-        +Integer status
-        +Boolean isDeleted
-        +LocalDateTime createdAt
-        +LocalDateTime updatedAt
-    }
-
-    class CustomerContractController {
-        +ResponseEntity<CustomerContract> getContractById(Long id)
-        +ResponseEntity<CustomerContract> createContract(CustomerContract contract)
-        +ResponseEntity<List<CustomerContract>> getAllContracts()
-        +ResponseEntity<CustomerContract> updateContract(CustomerContract contract)
-        +ResponseEntity<Void> deleteContract(Long id)
-        +ResponseEntity<List<CustomerContract>> getContractsByCustomerId(Long customerId)
-        +ResponseEntity<List<CustomerContract>> getContractsByStatus(Integer status)
-        +ResponseEntity<List<CustomerContract>> getContractsByJobCategoryId(Long jobCategoryId)
-        +ResponseEntity<List<CustomerContract>> getContractsByDateRange(LocalDate startDate, LocalDate endDate)
-        +ResponseEntity<CustomerContract> updateContractStatus(Long id, Integer status)
-        +ResponseEntity<CustomerContract> signContract(Long id, LocalDate signedDate)
-        +ResponseEntity<Boolean> checkContractExists(Long id)
-    }
-
-    class CustomerContractService {
-        <<interface>>
-        +CustomerContract getContractById(Long id)
-        +CustomerContract createContract(CustomerContract contract)
-        +List<CustomerContract> getAllContracts()
-        +CustomerContract updateContract(CustomerContract contract)
-        +void deleteContract(Long id)
-        +List<CustomerContract> getContractsByCustomerId(Long customerId)
-        +List<CustomerContract> getContractsByStatus(Integer status)
-        +List<CustomerContract> getContractsByJobCategoryId(Long jobCategoryId)
-        +List<CustomerContract> getContractsByDateRange(LocalDate startDate, LocalDate endDate)
-        +CustomerContract updateContractStatus(Long id, Integer status)
-        +CustomerContract signContract(Long id, LocalDate signedDate)
-        +boolean checkContractExists(Long id)
-    }
-
-    class CustomerContractServiceImpl {
-        +CustomerContract getContractById(Long id)
-        +CustomerContract createContract(CustomerContract contract)
-        +List<CustomerContract> getAllContracts()
-        +CustomerContract updateContract(CustomerContract contract)
-        +void deleteContract(Long id)
-        +List<CustomerContract> getContractsByCustomerId(Long customerId)
-        +List<CustomerContract> getContractsByStatus(Integer status)
-        +List<CustomerContract> getContractsByJobCategoryId(Long jobCategoryId)
-        +List<CustomerContract> getContractsByDateRange(LocalDate startDate, LocalDate endDate)
-        +CustomerContract updateContractStatus(Long id, Integer status)
-        +CustomerContract signContract(Long id, LocalDate signedDate)
-        +boolean checkContractExists(Long id)
-    }
-
-    class CustomerContractRepository {
-        <<interface>>
-        +Optional<CustomerContract> findByIdAndIsDeletedFalse(Long id)
-        +List<CustomerContract> findByIsDeletedFalse()
-        +List<CustomerContract> findByCustomerIdAndIsDeletedFalse(Long customerId)
-        +List<CustomerContract> findByStatusAndIsDeletedFalse(Integer status)
-        +List<CustomerContract> findByJobCategoryIdAndIsDeletedFalse(Long jobCategoryId)
-        +List<CustomerContract> findByStartingDateBetweenAndIsDeletedFalse(LocalDate startDate, LocalDate endDate)
-    }
-
-    class CustomerClient {
-        <<interface>>
-        +Customer getCustomerById(Long id)
-        +Boolean checkCustomerExists(Long id)
-        +List<Customer> searchCustomers(String fullName, String phoneNumber)
-    }
-
-    class JobCategoryClient {
-        <<interface>>
-        +JobCategory getJobCategoryById(Long id)
-        +Boolean checkJobCategoryExists(Long id)
-        +List<JobCategory> getAllJobCategories()
+        class CustomerRepository {
+            <<interface>>
+            +findByIdAndIsDeletedFalse(id): Optional~Customer~
+            +findByIsDeletedFalse(): List~Customer~
+            +findByFullNameContainingAndIsDeletedFalse(fullName): List~Customer~
+            +findByPhoneNumberContainingAndIsDeletedFalse(phoneNumber): List~Customer~
+        }
     }
 
     %% Job Service
-    class JobCategory {
-        +Long id
-        +String name
-        +String description
-        +Boolean isDeleted
-        +LocalDateTime createdAt
-        +LocalDateTime updatedAt
+    namespace job-service {
+        class JobCategory {
+            -id: Long
+            -name: String
+            -description: String
+            -isDeleted: Boolean
+            -createdAt: LocalDateTime
+            -updatedAt: LocalDateTime
+        }
+
+        class JobCategoryController {
+            +getJobCategoryById(id): JobCategory
+            +getAllJobCategories(): List~JobCategory~
+            +createJobCategory(jobCategory): JobCategory
+            +updateJobCategory(jobCategory): JobCategory
+            +deleteJobCategory(id): void
+            +checkJobCategoryExists(id): Boolean
+        }
+
+        class JobCategoryService {
+            <<interface>>
+            +getJobCategoryById(id): JobCategory
+            +getAllJobCategories(): List~JobCategory~
+            +createJobCategory(jobCategory): JobCategory
+            +updateJobCategory(jobCategory): JobCategory
+            +deleteJobCategory(id): void
+            +checkJobCategoryExists(id): Boolean
+        }
+
+        class JobCategoryServiceImpl {
+            -jobCategoryRepository: JobCategoryRepository
+            +getJobCategoryById(id): JobCategory
+            +getAllJobCategories(): List~JobCategory~
+            +createJobCategory(jobCategory): JobCategory
+            +updateJobCategory(jobCategory): JobCategory
+            +deleteJobCategory(id): void
+            +checkJobCategoryExists(id): Boolean
+        }
+
+        class JobCategoryRepository {
+            <<interface>>
+            +findByIdAndIsDeletedFalse(id): Optional~JobCategory~
+            +findByIsDeletedFalse(): List~JobCategory~
+        }
     }
 
-    class JobCategoryController {
-        +ResponseEntity<JobCategory> getJobCategoryById(Long id)
-        +ResponseEntity<JobCategory> createJobCategory(JobCategory jobCategory)
-        +ResponseEntity<List<JobCategory>> getAllJobCategories()
-        +ResponseEntity<JobCategory> updateJobCategory(JobCategory jobCategory)
-        +ResponseEntity<Void> deleteJobCategory(Long id)
-        +ResponseEntity<Boolean> checkJobCategoryExists(Long id)
+    %% Customer Contract Service - Main Entities
+    namespace customer-contract-service {
+        class CustomerContract {
+            -id: Long
+            -startingDate: LocalDate
+            -endingDate: LocalDate
+            -totalAmount: Double
+            -totalPaid: Double
+            -address: String
+            -description: String
+            -customerId: Long
+            -status: Integer
+            -isDeleted: Boolean
+            -createdAt: LocalDateTime
+            -updatedAt: LocalDateTime
+            -jobDetails: List~JobDetail~
+            +addJobDetail(jobDetail): void
+            +removeJobDetail(jobDetail): void
+        }
+
+        class JobDetail {
+            -id: Long
+            -startDate: LocalDate
+            -endDate: LocalDate
+            -workLocation: String
+            -jobCategoryId: Long
+            -isDeleted: Boolean
+            -createdAt: LocalDateTime
+            -updatedAt: LocalDateTime
+            -contract: CustomerContract
+            -workShifts: List~WorkShift~
+        }
+
+        class WorkShift {
+            -id: Long
+            -startTime: String
+            -endTime: String
+            -numberOfWorkers: Integer
+            -salary: Double
+            -workingDays: String
+            -isDeleted: Boolean
+            -createdAt: LocalDateTime
+            -updatedAt: LocalDateTime
+            -jobDetail: JobDetail
+        }
+
+        %% Controllers
+        class CustomerContractController {
+            -contractService: CustomerContractService
+            +getContractById(id): CustomerContract
+            +createContract(contract): CustomerContract
+            +getAllContracts(): List~CustomerContract~
+            +updateContract(contract): CustomerContract
+            +deleteContract(id): void
+            +getContractsByCustomerId(customerId): List~CustomerContract~
+            +getContractsByStatus(status): List~CustomerContract~
+            +getContractsByDateRange(startDate, endDate): List~CustomerContract~
+            +updateContractStatus(id, status): CustomerContract
+            +checkContractExists(id): Boolean
+            +calculateWorkingDates(startDate, endDate, workingDays): List~String~
+        }
+
+        class JobDetailController {
+            -jobDetailService: JobDetailService
+            +getJobDetailById(id): JobDetail
+            +createJobDetail(jobDetail): JobDetail
+            +getAllJobDetails(): List~JobDetail~
+            +updateJobDetail(jobDetail): JobDetail
+            +deleteJobDetail(id): void
+            +getJobDetailsByContractId(contractId): List~JobDetail~
+            +getJobDetailsByJobCategoryId(jobCategoryId): List~JobDetail~
+            +checkJobDetailExists(id): Boolean
+        }
+
+        class WorkShiftController {
+            -workShiftService: WorkShiftService
+            +getWorkShiftById(id): WorkShift
+            +createWorkShift(workShift): WorkShift
+            +getAllWorkShifts(): List~WorkShift~
+            +updateWorkShift(workShift): WorkShift
+            +deleteWorkShift(id): void
+            +getWorkShiftsByJobDetailId(jobDetailId): List~WorkShift~
+            +checkWorkShiftExists(id): Boolean
+        }
+
+        %% Services
+        class CustomerContractService {
+            <<interface>>
+            +createContract(contract): CustomerContract
+            +updateContract(contract): CustomerContract
+            +deleteContract(id): void
+            +getContractById(id): CustomerContract
+            +getAllContracts(): List~CustomerContract~
+            +getContractsByCustomerId(customerId): List~CustomerContract~
+            +getContractsByStatus(status): List~CustomerContract~
+            +getContractsByDateRange(startDate, endDate): List~CustomerContract~
+            +updateContractStatus(id, status): CustomerContract
+            +checkContractExists(id): Boolean
+            +calculateWorkingDatesForShift(startDate, endDate, workingDays): List~String~
+        }
+
+        class CustomerContractServiceImpl {
+            -contractRepository: CustomerContractRepository
+            -customerClient: CustomerClient
+            -jobCategoryClient: JobCategoryClient
+            -entityManager: EntityManager
+            +createContract(contract): CustomerContract
+            +updateContract(contract): CustomerContract
+            +deleteContract(id): void
+            +getContractById(id): CustomerContract
+            +getAllContracts(): List~CustomerContract~
+            +getContractsByCustomerId(customerId): List~CustomerContract~
+            +getContractsByStatus(status): List~CustomerContract~
+            +getContractsByDateRange(startDate, endDate): List~CustomerContract~
+            +updateContractStatus(id, status): CustomerContract
+            +checkContractExists(id): Boolean
+            +calculateWorkingDatesForShift(startDate, endDate, workingDays): List~String~
+            -validateContract(contract): void
+            -calculateTotalAmount(contract): Double
+        }
+
+        class JobDetailService {
+            <<interface>>
+            +createJobDetail(jobDetail): JobDetail
+            +updateJobDetail(jobDetail): JobDetail
+            +deleteJobDetail(id): void
+            +getJobDetailById(id): JobDetail
+            +getAllJobDetails(): List~JobDetail~
+            +getJobDetailsByContractId(contractId): List~JobDetail~
+            +getJobDetailsByJobCategoryId(jobCategoryId): List~JobDetail~
+            +checkJobDetailExists(id): Boolean
+        }
+
+        class JobDetailServiceImpl {
+            -jobDetailRepository: JobDetailRepository
+            -contractRepository: CustomerContractRepository
+            -jobCategoryClient: JobCategoryClient
+            +createJobDetail(jobDetail): JobDetail
+            +updateJobDetail(jobDetail): JobDetail
+            +deleteJobDetail(id): void
+            +getJobDetailById(id): JobDetail
+            +getAllJobDetails(): List~JobDetail~
+            +getJobDetailsByContractId(contractId): List~JobDetail~
+            +getJobDetailsByJobCategoryId(jobCategoryId): List~JobDetail~
+            +checkJobDetailExists(id): Boolean
+        }
+
+        class WorkShiftService {
+            <<interface>>
+            +createWorkShift(workShift): WorkShift
+            +updateWorkShift(workShift): WorkShift
+            +deleteWorkShift(id): void
+            +getWorkShiftById(id): WorkShift
+            +getAllWorkShifts(): List~WorkShift~
+            +getWorkShiftsByJobDetailId(jobDetailId): List~WorkShift~
+            +checkWorkShiftExists(id): Boolean
+        }
+
+        class WorkShiftServiceImpl {
+            -workShiftRepository: WorkShiftRepository
+            -jobDetailRepository: JobDetailRepository
+            +createWorkShift(workShift): WorkShift
+            +updateWorkShift(workShift): WorkShift
+            +deleteWorkShift(id): void
+            +getWorkShiftById(id): WorkShift
+            +getAllWorkShifts(): List~WorkShift~
+            +getWorkShiftsByJobDetailId(jobDetailId): List~WorkShift~
+            +checkWorkShiftExists(id): Boolean
+        }
+
+        %% Repositories
+        class CustomerContractRepository {
+            <<interface>>
+            +findByIsDeletedFalse(): List~CustomerContract~
+            +findByIdAndIsDeletedFalse(id): Optional~CustomerContract~
+            +findByCustomerIdAndIsDeletedFalse(customerId): List~CustomerContract~
+            +findByStatusAndIsDeletedFalse(status): List~CustomerContract~
+            +findByStartingDateBetweenAndIsDeletedFalse(startDate, endDate): List~CustomerContract~
+            +findByCustomerIdAndStartingDateAndEndingDateAndIsDeletedFalse(customerId, startingDate, endingDate): List~CustomerContract~
+        }
+
+        class JobDetailRepository {
+            <<interface>>
+            +findByIsDeletedFalse(): List~JobDetail~
+            +findByIdAndIsDeletedFalse(id): Optional~JobDetail~
+            +findByContract_IdAndIsDeletedFalse(contractId): List~JobDetail~
+            +findByJobCategoryIdAndIsDeletedFalse(jobCategoryId): List~JobDetail~
+        }
+
+        class WorkShiftRepository {
+            <<interface>>
+            +findByIsDeletedFalse(): List~WorkShift~
+            +findByIdAndIsDeletedFalse(id): Optional~WorkShift~
+            +findByJobDetail_IdAndIsDeletedFalse(jobDetailId): List~WorkShift~
+        }
+
+        %% External Service Clients
+        class CustomerClient {
+            <<FeignClient>>
+            +getCustomerById(id): Customer
+            +checkCustomerExists(id): Boolean
+        }
+
+        class JobCategoryClient {
+            <<FeignClient>>
+            +getJobCategoryById(id): JobCategory
+            +checkJobCategoryExists(id): Boolean
+        }
+
+        %% Model classes for external services
+        class Customer {
+            -id: Long
+            -fullName: String
+            -companyName: String
+            -phoneNumber: String
+            -email: String
+            -address: String
+            -isDeleted: Boolean
+            -createdAt: LocalDateTime
+            -updatedAt: LocalDateTime
+        }
+
+        class JobCategory {
+            -id: Long
+            -name: String
+            -description: String
+            -isDeleted: Boolean
+            -createdAt: LocalDateTime
+            -updatedAt: LocalDateTime
+        }
     }
 
-    class JobCategoryService {
-        <<interface>>
-        +JobCategory getJobCategoryById(Long id)
-        +JobCategory createJobCategory(JobCategory jobCategory)
-        +List<JobCategory> getAllJobCategories()
-        +JobCategory updateJobCategory(JobCategory jobCategory)
-        +void deleteJobCategory(Long id)
-        +boolean checkJobCategoryExists(Long id)
-    }
+    %% Relationships - Frontend to API Gateway
+    CustomerContractList --> ApiGateway : HTTP requests
+    ContractForm --> ApiGateway : HTTP requests
+    ContractDetail --> ApiGateway : HTTP requests
+    CustomerSelectionDialog --> ApiGateway : HTTP requests
 
-    class JobCategoryServiceImpl {
-        +JobCategory getJobCategoryById(Long id)
-        +JobCategory createJobCategory(JobCategory jobCategory)
-        +List<JobCategory> getAllJobCategories()
-        +JobCategory updateJobCategory(JobCategory jobCategory)
-        +void deleteJobCategory(Long id)
-        +boolean checkJobCategoryExists(Long id)
-    }
+    %% Relationships - API Gateway to Services
+    ApiGateway --> CustomerController : routes to
+    ApiGateway --> JobCategoryController : routes to
+    ApiGateway --> CustomerContractController : routes to
 
-    class JobCategoryRepository {
-        <<interface>>
-        +Optional<JobCategory> findByIdAndIsDeletedFalse(Long id)
-        +List<JobCategory> findByIsDeletedFalse()
-    }
+    %% Relationships - Customer Service
+    CustomerController --> CustomerService : uses
+    CustomerServiceImpl ..|> CustomerService : implements
+    CustomerServiceImpl --> CustomerRepository : uses
+    CustomerRepository --> Customer : manages
 
-    %% API Gateway Components
-    class ApiGateway {
-        +route(HttpServletRequest request)
-        +handleResponse(ClientHttpResponse response)
-        +handleError(Exception ex)
-    }
+    %% Relationships - Job Service
+    JobCategoryController --> JobCategoryService : uses
+    JobCategoryServiceImpl ..|> JobCategoryService : implements
+    JobCategoryServiceImpl --> JobCategoryRepository : uses
+    JobCategoryRepository --> JobCategory : manages
 
-    class RouteConfig {
-        -Map<String, String> routes
-        +getRoute(String path)
-        +addRoute(String path, String serviceId)
-        +removeRoute(String path)
-    }
+    %% Relationships - Customer Contract Service Controllers
+    CustomerContractController --> CustomerContractService : uses
+    JobDetailController --> JobDetailService : uses
+    WorkShiftController --> WorkShiftService : uses
 
-    class AuthFilter {
-        +doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-        +validateToken(String token)
-        +extractUserInfo(String token)
-    }
+    %% Relationships - Customer Contract Service Services
+    CustomerContractServiceImpl ..|> CustomerContractService : implements
+    JobDetailServiceImpl ..|> JobDetailService : implements
+    WorkShiftServiceImpl ..|> WorkShiftService : implements
 
-    class LoadBalancer {
-        -List<ServiceInstance> instances
-        +chooseInstance(String serviceId)
-        +updateInstances(String serviceId, List<ServiceInstance> instances)
-    }
+    %% Relationships - Service to Repository
+    CustomerContractServiceImpl --> CustomerContractRepository : uses
+    CustomerContractServiceImpl --> CustomerClient : uses
+    CustomerContractServiceImpl --> JobCategoryClient : uses
+    JobDetailServiceImpl --> JobDetailRepository : uses
+    JobDetailServiceImpl --> CustomerContractRepository : uses
+    JobDetailServiceImpl --> JobCategoryClient : uses
+    WorkShiftServiceImpl --> WorkShiftRepository : uses
+    WorkShiftServiceImpl --> JobDetailRepository : uses
 
-    %% Frontend Components
-    class CustomerContractList {
-        -List<CustomerContract> contracts
-        -List<Customer> customers
-        -List<JobCategory> jobCategories
-        -CustomerContract selectedContract
-        -Customer selectedCustomer
-        -boolean isEdit
-        +fetchContracts()
-        +fetchCustomers()
-        +fetchJobCategories()
-        +openNewDialog()
-        +openEditDialog(contract)
-        +deleteContract(id)
-        +saveContract()
-        +openCustomerSelectionDialog()
-        +handleSelectCustomer(customer)
-        +handleAddCustomerSuccess(newCustomer)
-    }
+    %% Relationships - Repository to Entity
+    CustomerContractRepository --> CustomerContract : manages
+    JobDetailRepository --> JobDetail : manages
+    WorkShiftRepository --> WorkShift : manages
 
-    class CustomerSelectionDialog {
-        -List<Customer> customers
-        -String searchTerm
-        +searchCustomers()
-        +selectCustomer(customer)
-        +openAddNewCustomer()
-    }
+    %% Relationships - Entity Associations
+    CustomerContract ||--o{ JobDetail : contains
+    JobDetail ||--o{ WorkShift : contains
+    CustomerContract }o--|| Customer : belongs to
+    JobDetail }o--|| JobCategory : belongs to
 
-    class CustomerAddDialog {
-        -Customer customer
-        +saveCustomer()
-    }
-
-    class ContractForm {
-        -CustomerContract contract
-        -List<Customer> customers
-        -List<JobCategory> jobCategories
-        -boolean isEdit
-        +handleSave()
-        +getSelectedCustomer()
-        +getSelectedJobCategory()
-    }
-
-    class ContractDetail {
-        -CustomerContract contract
-        -List<Customer> customers
-        -List<JobCategory> jobCategories
-        +getSelectedCustomer()
-        +getSelectedJobCategory()
-        +formatDate(date)
-        +formatCurrency(value)
-        +getStatusLabel(status)
-        +getStatusClass(status)
-    }
-
-    %% Relationships
-
-    %% API Gateway Relationships
-    ApiGateway --> RouteConfig
-    ApiGateway --> AuthFilter
-    ApiGateway --> LoadBalancer
-
-    %% Frontend to API Gateway Relationships
-    CustomerContractList ..> ApiGateway : "HTTP"
-    CustomerSelectionDialog ..> ApiGateway : "HTTP"
-    CustomerAddDialog ..> ApiGateway : "HTTP"
-    ContractForm ..> ApiGateway : "HTTP"
-
-    %% API Gateway to Microservices Relationships
-    ApiGateway ..> CustomerContractController : "HTTP"
-    ApiGateway ..> CustomerController : "HTTP"
-    ApiGateway ..> JobCategoryController : "HTTP"
-
-    %% Customer Service Relationships
-    CustomerController --> CustomerService
-    CustomerService <|.. CustomerServiceImpl
-    CustomerServiceImpl --> CustomerRepository
-    CustomerRepository --> Customer
-
-    %% Customer Contract Service Relationships
-    CustomerContractController --> CustomerContractService
-    CustomerContractService <|.. CustomerContractServiceImpl
-    CustomerContractServiceImpl --> CustomerContractRepository
-    CustomerContractServiceImpl --> CustomerClient
-    CustomerContractServiceImpl --> JobCategoryClient
-    CustomerContractRepository --> CustomerContract
-    CustomerClient ..> CustomerController : "HTTP"
-    JobCategoryClient ..> JobCategoryController : "HTTP"
-
-    %% Job Service Relationships
-    JobCategoryController --> JobCategoryService
-    JobCategoryService <|.. JobCategoryServiceImpl
-    JobCategoryServiceImpl --> JobCategoryRepository
-    JobCategoryRepository --> JobCategory
-
-    %% Frontend Component Relationships
-    CustomerContractList --> ContractForm
-    CustomerContractList --> ContractDetail
-    CustomerContractList --> CustomerSelectionDialog
-    CustomerSelectionDialog --> CustomerAddDialog
+    %% Relationships - Feign Clients
+    CustomerClient --> CustomerController : calls via HTTP
+    JobCategoryClient --> JobCategoryController : calls via HTTP
 ```
 
-## Giải thích chi tiết các thành phần trong sơ đồ
+## Mô tả chi tiết các thành phần
 
-### 1. frontend
+### 1. Frontend (React + PrimeReact)
+- **CustomerContractList**: Component hiển thị danh sách hợp đồng với khách hàng
+- **ContractForm**: Form tạo/chỉnh sửa hợp đồng với workflow: chọn khách hàng → chọn loại công việc → định nghĩa ca làm việc → chọn ngày làm việc
+- **ContractDetail**: Component hiển thị chi tiết hợp đồng với bảng lịch làm việc và thông tin thanh toán
+- **CustomerSelectionDialog**: Dialog tìm kiếm và chọn khách hàng
 
-#### Components
-- **CustomerContractList**: Component hiển thị danh sách hợp đồng và xử lý các thao tác CRUD.
-- **CustomerSelectionDialog**: Dialog tìm kiếm và chọn khách hàng.
-- **CustomerAddDialog**: Dialog thêm khách hàng mới.
-- **ContractForm**: Form nhập thông tin hợp đồng.
-- **ContractDetail**: Component hiển thị chi tiết hợp đồng.
+### 2. API Gateway
+- **ApiGateway**: Điều hướng các request từ frontend đến các microservice tương ứng
+- Chạy trên port 8080 và là điểm vào duy nhất cho frontend
 
-### 2. api-gateway
+### 3. Customer Service (Port 8081)
+- **Customer**: Entity chứa thông tin khách hàng (tên, công ty, số điện thoại, email, địa chỉ)
+- **CustomerController**: REST API endpoints cho quản lý khách hàng
+- **CustomerService/Impl**: Business logic cho khách hàng
+- **CustomerRepository**: Data access layer cho Customer entity
 
-#### Components
-- **ApiGateway**: Lớp chính xử lý việc định tuyến các request từ frontend đến các microservice tương ứng.
-- **RouteConfig**: Lớp cấu hình các route, ánh xạ các đường dẫn URL đến các microservice.
-- **AuthFilter**: Bộ lọc xác thực, kiểm tra và xác thực token trước khi chuyển tiếp request.
-- **LoadBalancer**: Lớp cân bằng tải, phân phối các request đến các instance khác nhau của cùng một microservice.
+### 4. Job Service (Port 8082)
+- **JobCategory**: Entity chứa thông tin loại công việc (tên, mô tả)
+- **JobCategoryController**: REST API endpoints cho quản lý loại công việc
+- **JobCategoryService/Impl**: Business logic cho loại công việc
+- **JobCategoryRepository**: Data access layer cho JobCategory entity
 
-### 3. customer-service
-
-#### Entities
-- **Customer**: Entity chứa thông tin khách hàng với các thuộc tính như id, fullName, companyName, phoneNumber, email, address, isDeleted, createdAt, updatedAt.
-
-#### Controllers
-- **CustomerController**: REST API controller xử lý các request liên quan đến khách hàng, cung cấp các endpoint như getCustomerById, createCustomer, getAllCustomers, updateCustomer, deleteCustomer, checkCustomerExists, searchCustomers.
-
-#### Services
-- **CustomerService**: Interface định nghĩa các phương thức dịch vụ cho khách hàng.
-- **CustomerServiceImpl**: Lớp triển khai (implements) của CustomerService, chứa logic nghiệp vụ cho khách hàng.
-
-#### Repositories
-- **CustomerRepository**: Interface truy cập dữ liệu khách hàng, cung cấp các phương thức như findByIdAndIsDeletedFalse, findByIsDeletedFalse, findByFullNameContainingAndIsDeletedFalse, findByPhoneNumberContainingAndIsDeletedFalse.
-
-### 4. job-service
+### 5. Customer Contract Service (Port 8083)
 
 #### Entities
-- **JobCategory**: Entity chứa thông tin loại công việc với các thuộc tính như id, name, description, isDeleted, createdAt, updatedAt.
+- **CustomerContract**: Entity chính chứa thông tin hợp đồng
+  - Quan hệ 1-n với JobDetail
+  - Chứa thông tin: ngày bắt đầu/kết thúc, tổng tiền, địa chỉ, mô tả, trạng thái
+- **JobDetail**: Entity chứa chi tiết công việc trong hợp đồng
+  - Quan hệ n-1 với CustomerContract
+  - Quan hệ 1-n với WorkShift
+  - Chứa thông tin: ngày bắt đầu/kết thúc, địa điểm làm việc, jobCategoryId
+- **WorkShift**: Entity chứa thông tin ca làm việc
+  - Quan hệ n-1 với JobDetail
+  - Chứa thông tin: giờ bắt đầu/kết thúc, số lượng công nhân, lương, ngày làm việc
 
 #### Controllers
-- **JobCategoryController**: REST API controller xử lý các request liên quan đến loại công việc, cung cấp các endpoint như getJobCategoryById, createJobCategory, getAllJobCategories, updateJobCategory, deleteJobCategory, checkJobCategoryExists.
+- **CustomerContractController**: REST API cho quản lý hợp đồng
+- **JobDetailController**: REST API cho quản lý chi tiết công việc
+- **WorkShiftController**: REST API cho quản lý ca làm việc
 
 #### Services
-- **JobCategoryService**: Interface định nghĩa các phương thức dịch vụ cho loại công việc.
-- **JobCategoryServiceImpl**: Lớp triển khai (implements) của JobCategoryService, chứa logic nghiệp vụ cho loại công việc.
+- **CustomerContractService/Impl**: Business logic cho hợp đồng
+  - Validation hợp đồng
+  - Tính toán tổng tiền tự động
+  - Tính toán ngày làm việc
+- **JobDetailService/Impl**: Business logic cho chi tiết công việc
+- **WorkShiftService/Impl**: Business logic cho ca làm việc
 
 #### Repositories
-- **JobCategoryRepository**: Interface truy cập dữ liệu loại công việc, cung cấp các phương thức như findByIdAndIsDeletedFalse, findByIsDeletedFalse.
+- **CustomerContractRepository**: Data access cho CustomerContract
+- **JobDetailRepository**: Data access cho JobDetail
+- **WorkShiftRepository**: Data access cho WorkShift
 
-### 5. customer-contract-service
+#### External Service Clients
+- **CustomerClient**: Feign client gọi đến customer-service
+- **JobCategoryClient**: Feign client gọi đến job-service
 
-#### Entities
-- **CustomerContract**: Entity chứa thông tin hợp đồng với các thuộc tính như id, contractCode, startingDate, endingDate, signedDate, numberOfWorkers, totalAmount, address, description, jobCategoryId, customerId, status, isDeleted, createdAt, updatedAt.
+## Luồng hoạt động chính
 
-#### Controllers
-- **CustomerContractController**: REST API controller xử lý các request liên quan đến hợp đồng, cung cấp các endpoint như getContractById, createContract, getAllContracts, updateContract, deleteContract, getContractsByCustomerId, getContractsByStatus, getContractsByJobCategoryId, getContractsByDateRange, updateContractStatus, signContract, checkContractExists.
+### 1. Tạo hợp đồng mới
+1. Frontend gọi API Gateway
+2. API Gateway chuyển tiếp đến CustomerContractController
+3. Controller gọi CustomerContractService
+4. Service validate thông tin qua CustomerClient và JobCategoryClient
+5. Service tính toán tổng tiền và lưu vào database
+6. Trả về thông tin hợp đồng đã tạo
 
-#### Services
-- **CustomerContractService**: Interface định nghĩa các phương thức dịch vụ cho hợp đồng.
-- **CustomerContractServiceImpl**: Lớp triển khai (implements) của CustomerContractService, chứa logic nghiệp vụ cho hợp đồng.
+### 2. Hiển thị chi tiết hợp đồng
+1. Frontend request thông tin hợp đồng
+2. Service lấy thông tin hợp đồng cùng với JobDetail và WorkShift
+3. Tính toán và hiển thị lịch làm việc chi tiết
+4. Hiển thị thông tin thanh toán và trạng thái
 
-#### Repositories
-- **CustomerContractRepository**: Interface truy cập dữ liệu hợp đồng, cung cấp các phương thức như findByIdAndIsDeletedFalse, findByIsDeletedFalse, findByCustomerIdAndIsDeletedFalse, findByStatusAndIsDeletedFalse, findByJobCategoryIdAndIsDeletedFalse, findByStartingDateBetweenAndIsDeletedFalse.
+### 3. Tính toán tự động
+- **Tổng tiền hợp đồng**: Tự động tính dựa trên (lương × số công nhân × số ngày làm việc) của tất cả ca làm việc
+- **Ngày làm việc**: Tự động tính dựa trên khoảng thời gian hợp đồng và các ngày trong tuần được chọn
+- **Trạng thái hợp đồng**: 0-Chờ duyệt, 1-Đang hoạt động, 2-Hoàn thành, 3-Đã hủy
 
-#### Clients
-- **CustomerClient**: Feign client gọi đến customer-service, cung cấp các phương thức như getCustomerById, checkCustomerExists, searchCustomers.
-- **JobCategoryClient**: Feign client gọi đến job-service, cung cấp các phương thức như getJobCategoryById, checkJobCategoryExists, getAllJobCategories.
+## Đặc điểm kỹ thuật
 
-## Mối quan hệ giữa các lớp
+### 1. Kiến trúc Microservices
+- Mỗi service độc lập với database riêng
+- Giao tiếp qua HTTP/REST API
+- Sử dụng Feign Client cho inter-service communication
 
-### Trong api-gateway
-- **ApiGateway** sử dụng **RouteConfig** để xác định microservice đích cho mỗi request.
-- **ApiGateway** sử dụng **AuthFilter** để xác thực các request trước khi chuyển tiếp.
-- **ApiGateway** sử dụng **LoadBalancer** để cân bằng tải giữa các instance của cùng một microservice.
+### 2. Entity Relationships
+- Sử dụng JPA annotations (@OneToMany, @ManyToOne)
+- JSON serialization với @JsonManagedReference/@JsonBackReference
+- Cascade operations và orphan removal
 
-### Giữa frontend và api-gateway
-- **CustomerContractList** gửi request đến **ApiGateway** thông qua HTTP.
-- **CustomerSelectionDialog** gửi request đến **ApiGateway** thông qua HTTP.
-- **CustomerAddDialog** gửi request đến **ApiGateway** thông qua HTTP.
-- **ContractForm** gửi request đến **ApiGateway** thông qua HTTP.
+### 3. Data Validation
+- Validation ở service layer
+- Kiểm tra tồn tại của Customer và JobCategory qua external services
+- Soft delete pattern (isDeleted flag)
 
-### Giữa api-gateway và các microservice
-- **ApiGateway** chuyển tiếp request đến **CustomerContractController** thông qua HTTP.
-- **ApiGateway** chuyển tiếp request đến **CustomerController** thông qua HTTP.
-- **ApiGateway** chuyển tiếp request đến **JobCategoryController** thông qua HTTP.
-
-### Trong customer-service
-- **CustomerController** sử dụng **CustomerService** (interface) để xử lý logic nghiệp vụ.
-- **CustomerServiceImpl** triển khai (implements) **CustomerService** interface.
-- **CustomerServiceImpl** sử dụng **CustomerRepository** để truy cập dữ liệu.
-- **CustomerRepository** thao tác với entity **Customer**.
-
-### Trong job-service
-- **JobCategoryController** sử dụng **JobCategoryService** (interface) để xử lý logic nghiệp vụ.
-- **JobCategoryServiceImpl** triển khai (implements) **JobCategoryService** interface.
-- **JobCategoryServiceImpl** sử dụng **JobCategoryRepository** để truy cập dữ liệu.
-- **JobCategoryRepository** thao tác với entity **JobCategory**.
-
-### Trong customer-contract-service
-- **CustomerContractController** sử dụng **CustomerContractService** (interface) để xử lý logic nghiệp vụ.
-- **CustomerContractServiceImpl** triển khai (implements) **CustomerContractService** interface.
-- **CustomerContractServiceImpl** sử dụng **CustomerContractRepository** để truy cập dữ liệu.
-- **CustomerContractServiceImpl** sử dụng **CustomerClient** và **JobCategoryClient** để giao tiếp với các microservice khác.
-- **CustomerContractRepository** thao tác với entity **CustomerContract**.
-- **CustomerClient** gọi đến **CustomerController** thông qua HTTP.
-- **JobCategoryClient** gọi đến **JobCategoryController** thông qua HTTP.
-
-### Giữa các component frontend
-- **CustomerContractList** sử dụng **ContractForm** để hiển thị form thêm/sửa hợp đồng.
-- **CustomerContractList** sử dụng **ContractDetail** để hiển thị chi tiết hợp đồng.
-- **CustomerContractList** sử dụng **CustomerSelectionDialog** để tìm kiếm và chọn khách hàng.
-- **CustomerSelectionDialog** sử dụng **CustomerAddDialog** để thêm khách hàng mới.
-
-## Lưu ý về kiến trúc vi dịch vụ
-
-Trong kiến trúc vi dịch vụ, mỗi microservice hoạt động độc lập và giao tiếp với nhau thông qua HTTP API. Các microservice không truy cập trực tiếp vào cơ sở dữ liệu của nhau, mà thông qua các client (như Feign client) để gọi API của microservice khác.
-
-API Gateway đóng vai trò là cổng vào duy nhất cho tất cả các request từ frontend đến các microservice. Nó có các chức năng quan trọng như:
-- **Định tuyến (Routing)**: Chuyển tiếp request đến microservice tương ứng dựa trên URL.
-- **Xác thực (Authentication)**: Kiểm tra và xác thực token trước khi chuyển tiếp request.
-- **Cân bằng tải (Load Balancing)**: Phân phối request đến các instance khác nhau của cùng một microservice.
-- **Giám sát (Monitoring)**: Thu thập thông tin về các request và response để phục vụ việc giám sát hệ thống.
-- **Bảo mật (Security)**: Bảo vệ các microservice khỏi các cuộc tấn công từ bên ngoài.
-
-Mỗi microservice có cơ sở dữ liệu riêng và chỉ quản lý các entity thuộc về domain của mình. Ví dụ, customer-service quản lý entity Customer, job-service quản lý entity JobCategory, và customer-contract-service quản lý entity CustomerContract.
-
-Trong sơ đồ lớp này, các mối quan hệ giữa các entity được thể hiện thông qua các trường khóa ngoại (như customerId, jobCategoryId) thay vì các mối quan hệ trực tiếp, phù hợp với nguyên tắc của kiến trúc vi dịch vụ.
-
-Việc sử dụng API Gateway giúp đơn giản hóa giao tiếp giữa frontend và các microservice, đồng thời cung cấp một lớp bảo mật và kiểm soát truy cập tập trung cho toàn bộ hệ thống.
+### 4. Frontend Integration
+- React với TypeScript
+- PrimeReact UI components
+- Vietnamese date/currency formatting
+- Real-time calculation và validation

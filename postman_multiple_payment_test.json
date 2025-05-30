@@ -1,0 +1,147 @@
+{
+  "info": {
+    "name": "Customer Payment Service - Multiple Contracts Payment Test",
+    "description": "Test thanh toán nhiều hợp đồng cùng lúc"
+  },
+  "requests": [
+    {
+      "name": "1. Test Health Check",
+      "method": "GET",
+      "url": "http://localhost:8084/actuator/health",
+      "description": "Kiểm tra service có hoạt động không"
+    },
+    {
+      "name": "2. Get All Payments",
+      "method": "GET", 
+      "url": "http://localhost:8084/api/payments",
+      "description": "Lấy danh sách tất cả payments hiện có"
+    },
+    {
+      "name": "3. Create Multiple Contracts Payment",
+      "method": "POST",
+      "url": "http://localhost:8084/api/payments/multiple-contracts",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "customerId": 1,
+        "totalAmount": 50000000,
+        "paymentMethod": 0,
+        "note": "Thanh toán nhiều hợp đồng test",
+        "contractPayments": [
+          {
+            "contractId": 7,
+            "allocatedAmount": 15000000
+          },
+          {
+            "contractId": 9,
+            "allocatedAmount": 24000000
+          },
+          {
+            "contractId": 10,
+            "allocatedAmount": 11000000
+          }
+        ]
+      },
+      "description": "Test thanh toán cho nhiều hợp đồng cùng lúc"
+    },
+    {
+      "name": "4. Get Contract Payments by Payment ID",
+      "method": "GET",
+      "url": "http://localhost:8084/api/payments/payment/{paymentId}/contract-payments",
+      "description": "Lấy danh sách contract payments theo payment ID (thay {paymentId} bằng ID thực)"
+    },
+    {
+      "name": "5. Get Active Contracts by Customer ID",
+      "method": "GET",
+      "url": "http://localhost:8084/api/payments/customer/1/active-contracts",
+      "description": "Lấy danh sách hợp đồng active của customer ID 1"
+    }
+  ],
+  "test_scenarios": [
+    {
+      "scenario": "Successful Multiple Payment",
+      "steps": [
+        "1. Chạy request 'Get Active Contracts by Customer ID' để lấy danh sách hợp đồng",
+        "2. Chọn 2-3 hợp đồng có remaining amount > 0",
+        "3. Tạo request 'Create Multiple Contracts Payment' với:",
+        "   - customerId: ID khách hàng",
+        "   - totalAmount: tổng số tiền = sum(allocatedAmount)",
+        "   - contractPayments: danh sách hợp đồng và số tiền phân bổ",
+        "4. Kiểm tra response trả về payment ID",
+        "5. Chạy request 'Get Contract Payments by Payment ID' để verify"
+      ]
+    },
+    {
+      "scenario": "Error Cases to Test",
+      "cases": [
+        {
+          "case": "Total amount mismatch",
+          "description": "totalAmount != sum(allocatedAmount)",
+          "expected": "Error: Tổng số tiền phân bổ phải bằng tổng số tiền thanh toán"
+        },
+        {
+          "case": "Invalid contract ID",
+          "description": "contractId không tồn tại",
+          "expected": "Error: Không tìm thấy hợp đồng ID"
+        },
+        {
+          "case": "Amount exceeds remaining",
+          "description": "allocatedAmount > remaining amount",
+          "expected": "Error: Số tiền thanh toán không được vượt quá số tiền còn lại"
+        },
+        {
+          "case": "Empty contract payments",
+          "description": "contractPayments = []",
+          "expected": "Error: Phải có ít nhất một hợp đồng để thanh toán"
+        }
+      ]
+    }
+  ],
+  "sample_data": {
+    "valid_request": {
+      "customerId": 1,
+      "totalAmount": 50000000,
+      "paymentMethod": 0,
+      "note": "Test payment",
+      "contractPayments": [
+        {
+          "contractId": 7,
+          "allocatedAmount": 15000000
+        },
+        {
+          "contractId": 9,
+          "allocatedAmount": 24000000
+        },
+        {
+          "contractId": 10,
+          "allocatedAmount": 11000000
+        }
+      ]
+    },
+    "error_request_total_mismatch": {
+      "customerId": 1,
+      "totalAmount": 40000000,
+      "paymentMethod": 0,
+      "note": "Test error",
+      "contractPayments": [
+        {
+          "contractId": 7,
+          "allocatedAmount": 15000000
+        },
+        {
+          "contractId": 9,
+          "allocatedAmount": 24000000
+        }
+      ]
+    }
+  },
+  "notes": [
+    "1. Đảm bảo customer-payment-service đang chạy trên port 8084",
+    "2. Đảm bảo database có dữ liệu customers và contracts",
+    "3. Kiểm tra logs backend để debug nếu có lỗi",
+    "4. Payment method: 0=Tiền mặt, 1=Chuyển khoản, 2=Thẻ tín dụng, 3=Khác",
+    "5. Tất cả amounts phải > 0",
+    "6. Contract phải có status ACTIVE (1) hoặc PENDING (0)"
+  ]
+}

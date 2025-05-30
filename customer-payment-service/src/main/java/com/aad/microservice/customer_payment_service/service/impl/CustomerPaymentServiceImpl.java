@@ -3,13 +3,16 @@ package com.aad.microservice.customer_payment_service.service.impl;
 import com.aad.microservice.customer_payment_service.client.CustomerClient;
 import com.aad.microservice.customer_payment_service.client.CustomerContractClient;
 import com.aad.microservice.customer_payment_service.constant.ContractStatusConstants;
-
+import com.aad.microservice.customer_payment_service.dto.CreatePaymentRequest;
+import com.aad.microservice.customer_payment_service.dto.ContractPaymentDto;
 import com.aad.microservice.customer_payment_service.exception.AppException;
 import com.aad.microservice.customer_payment_service.exception.ErrorCode;
 import com.aad.microservice.customer_payment_service.model.Customer;
 import com.aad.microservice.customer_payment_service.model.CustomerContract;
 import com.aad.microservice.customer_payment_service.model.CustomerPayment;
+import com.aad.microservice.customer_payment_service.model.ContractPayment;
 import com.aad.microservice.customer_payment_service.repository.CustomerPaymentRepository;
+import com.aad.microservice.customer_payment_service.repository.ContractPaymentRepository;
 import com.aad.microservice.customer_payment_service.service.CustomerPaymentService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +30,7 @@ import java.util.stream.Collectors;
 @Service
 public class CustomerPaymentServiceImpl implements CustomerPaymentService {
     private final CustomerPaymentRepository paymentRepository;
+    private final ContractPaymentRepository contractPaymentRepository;
     private final CustomerClient customerClient;
     private final CustomerContractClient contractClient;
 
@@ -34,9 +38,11 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
     private EntityManager entityManager;
 
     public CustomerPaymentServiceImpl(CustomerPaymentRepository paymentRepository,
+                                     ContractPaymentRepository contractPaymentRepository,
                                      CustomerClient customerClient,
                                      CustomerContractClient contractClient) {
         this.paymentRepository = paymentRepository;
+        this.contractPaymentRepository = contractPaymentRepository;
         this.customerClient = customerClient;
         this.contractClient = contractClient;
     }
@@ -318,8 +324,17 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
 
     @Override
     public Double getTotalPaidAmountByContractId(Long contractId) {
-        Double totalPaid = paymentRepository.getTotalPaidAmountByContractId(contractId);
-        return totalPaid != null ? totalPaid : 0.0;
+        // Sử dụng cả hai cách để tương thích ngược
+        // 1. Từ ContractPayment (many-to-many)
+        Double totalFromAllocations = contractPaymentRepository.getTotalPaidAmountByContractId(contractId);
+
+        // 2. Từ CustomerPayment cũ (one-to-many) - để tương thích ngược
+        Double totalFromOldPayments = paymentRepository.getTotalPaidAmountByContractId(contractId);
+
+        Double totalAllocations = totalFromAllocations != null ? totalFromAllocations : 0.0;
+        Double totalOldPayments = totalFromOldPayments != null ? totalFromOldPayments : 0.0;
+
+        return totalAllocations + totalOldPayments;
     }
 
     @Override
@@ -332,5 +347,145 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
             System.out.println("Không thể kết nối đến customer-contract-service: " + e.getMessage());
             throw new AppException(ErrorCode.ContractNotFound_Exception, "Không thể lấy thông tin hợp đồng");
         }
+    }
+
+    // Phương thức mới - hỗ trợ many-to-many
+    @Override
+    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.SERIALIZABLE)
+    public CustomerPayment createPaymentWithMultipleContracts(CreatePaymentRequest request) {
+        // Validate input parameters
+        if (request == null) {
+            throw new AppException(ErrorCode.NotAllowCreate_Exception, "Thông tin thanh toán không được để trống");
+        }
+
+        if (request.getTotalAmount() == null || request.getTotalAmount() <= 0) {
+            throw new AppException(ErrorCode.InvalidAmount_Exception, "Số tiền thanh toán phải lớn hơn 0");
+        }
+
+        if (request.getCustomerId() == null) {
+            throw new AppException(ErrorCode.CustomerNotFound_Exception, "Mã khách hàng không được để trống");
+        }
+
+        if (request.getContractPayments() == null || request.getContractPayments().isEmpty()) {
+            throw new AppException(ErrorCode.ContractNotFound_Exception, "Phải có ít nhất một hợp đồng để thanh toán");
+        }
+
+        // Kiểm tra khách hàng có tồn tại không
+        try {
+            Boolean customerExists = customerClient.checkCustomerExists(request.getCustomerId());
+            if (!customerExists) {
+                throw new AppException(ErrorCode.CustomerNotFound_Exception, "Không tìm thấy thông tin khách hàng");
+            }
+
+            // Validate tổng số tiền phân bổ
+            Double totalAllocated = request.getContractPayments().stream()
+                    .mapToDouble(ContractPaymentDto::getAllocatedAmount)
+                    .sum();
+
+            // Sử dụng epsilon để so sánh số thực
+            double epsilon = 0.01; // Cho phép sai lệch 1 cent
+            if (Math.abs(totalAllocated - request.getTotalAmount()) > epsilon) {
+                throw new AppException(ErrorCode.InvalidAmount_Exception,
+                    "Tổng số tiền phân bổ (" + totalAllocated + " VNĐ) phải bằng tổng số tiền thanh toán (" + request.getTotalAmount() + " VNĐ)");
+            }
+
+            // Validate từng hợp đồng
+            for (ContractPaymentDto allocation : request.getContractPayments()) {
+                if (allocation.getContractId() == null) {
+                    throw new AppException(ErrorCode.ContractNotFound_Exception, "Mã hợp đồng không được để trống");
+                }
+
+                if (allocation.getAllocatedAmount() == null || allocation.getAllocatedAmount() <= 0) {
+                    throw new AppException(ErrorCode.InvalidAmount_Exception, "Số tiền phân bổ cho hợp đồng phải lớn hơn 0");
+                }
+
+                // Kiểm tra hợp đồng có tồn tại không
+                Boolean contractExists = contractClient.checkContractExists(allocation.getContractId());
+                if (!contractExists) {
+                    throw new AppException(ErrorCode.ContractNotFound_Exception, "Không tìm thấy hợp đồng ID: " + allocation.getContractId());
+                }
+
+                // Kiểm tra hợp đồng có đang hoạt động hoặc chờ xử lý không
+                CustomerContract contract = contractClient.getContractById(allocation.getContractId());
+                boolean isActive = contract.getStatus() == ContractStatusConstants.ACTIVE;
+                boolean isPending = contract.getStatus() == ContractStatusConstants.PENDING;
+
+                if (!isActive && !isPending) {
+                    throw new AppException(ErrorCode.ContractNotActive_Exception,
+                            "Chỉ có thể thanh toán cho hợp đồng đang hoạt động hoặc chờ xử lý. Hợp đồng ID: " + allocation.getContractId());
+                }
+
+                // Kiểm tra số tiền thanh toán không vượt quá số tiền còn lại của hợp đồng
+                Double remainingAmount = getRemainingAmountByContractId(allocation.getContractId());
+                if (allocation.getAllocatedAmount() > remainingAmount) {
+                    throw new AppException(ErrorCode.InvalidAmount_Exception,
+                            "Số tiền thanh toán cho hợp đồng ID " + allocation.getContractId() +
+                            " (" + allocation.getAllocatedAmount() + " VNĐ) không được vượt quá số tiền còn lại (" + remainingAmount + " VNĐ)");
+                }
+            }
+
+        } catch (Exception e) {
+            if (e instanceof AppException) {
+                throw e;
+            }
+            System.out.println("Không thể kết nối đến service: " + e.getMessage());
+            throw new AppException(ErrorCode.Unknown_Exception, "Không thể xác thực thông tin thanh toán");
+        }
+
+        // Tạo payment chính
+        CustomerPayment payment = CustomerPayment.builder()
+                .paymentDate(request.getPaymentDate() != null ? request.getPaymentDate() : LocalDateTime.now())
+                .paymentMethod(request.getPaymentMethod())
+                .paymentAmount(request.getTotalAmount())
+                .note(request.getNote())
+                .customerId(request.getCustomerId())
+                .isDeleted(false)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        try {
+            // Lưu payment trước
+            CustomerPayment savedPayment = paymentRepository.save(payment);
+            entityManager.flush();
+
+            // Tạo các thanh toán hợp đồng
+            List<ContractPayment> contractPayments = new ArrayList<>();
+            for (ContractPaymentDto contractPaymentDto : request.getContractPayments()) {
+                ContractPayment contractPayment = ContractPayment.builder()
+                        .payment(savedPayment)
+                        .contractId(contractPaymentDto.getContractId())
+                        .allocatedAmount(contractPaymentDto.getAllocatedAmount())
+                        .build();
+
+                ContractPayment savedContractPayment = contractPaymentRepository.save(contractPayment);
+                contractPayments.add(savedContractPayment);
+            }
+
+            entityManager.flush();
+
+            // Set contract payments vào saved payment để trả về đầy đủ thông tin
+            savedPayment.setContractPayments(contractPayments);
+
+            System.out.println("Payment with multiple contracts successfully saved with ID: " + savedPayment.getId());
+            return savedPayment;
+
+        } catch (Exception e) {
+            System.err.println("Error saving payment with multiple contracts: " + e.getMessage());
+            e.printStackTrace(); // In stack trace để debug
+            throw new AppException(ErrorCode.NotAllowCreate_Exception, "Không thể tạo thanh toán: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ContractPayment> getContractPaymentsByPaymentId(Long paymentId) {
+        return contractPaymentRepository.findByPaymentId(paymentId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ContractPayment> getContractPaymentsByContractId(Long contractId) {
+        return contractPaymentRepository.findByContractId(contractId);
     }
 }
